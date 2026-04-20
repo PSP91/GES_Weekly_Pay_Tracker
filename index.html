@@ -3,17 +3,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>My Smart Payroll Schedule</title>
+    <title>Payroll Tracker</title>
     <style>
-        /* Base Styles (Light Mode Default) */
         :root {
             --bg-color: #f4f4f9;
             --card-bg: #ffffff;
             --text-main: #333333;
             --shadow: rgba(0,0,0,0.1);
+            --accent: #ffd700;
         }
 
-        /* Dark Mode Override (Triggers if your device is set to Dark) */
         @media (prefers-color-scheme: dark) {
             :root {
                 --bg-color: #121212;
@@ -31,10 +30,17 @@
             flex-direction: column;
             align-items: center;
             padding: 20px;
-            transition: background-color 0.3s ease;
         }
 
-        h1 { margin-bottom: 30px; }
+        .header-box {
+            text-align: center;
+            margin-bottom: 25px;
+            padding: 15px;
+            background: rgba(74, 144, 226, 0.1);
+            border-radius: 10px;
+            width: 100%;
+            max-width: 500px;
+        }
 
         .card {
             background-color: var(--card-bg);
@@ -47,6 +53,17 @@
             position: relative;
         }
 
+        .holiday-note {
+            background-color: #ff9800;
+            color: white;
+            font-size: 0.8rem;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-weight: bold;
+            display: inline-block;
+            margin-top: 10px;
+        }
+
         .row { margin: 8px 0; font-size: 1.1rem; }
         .date-blue { color: #4a90e2; font-weight: bold; }
         .date-green { color: #4caf50; font-weight: bold; }
@@ -56,50 +73,71 @@
 </head>
 <body>
 
-    <h1>Payroll Schedule</h1>
+    <h1>Payroll Tracker £</h1>
+    
+    <div id="monthly-stats" class="header-box">
+        </div>
+
     <div id="schedule-container"></div>
 
     <script>
+        // UK Bank Holidays 2026 (Format: YYYY-MM-DD)
+        const bankHolidays = [
+            "2026-01-01", "2026-04-03", "2026-04-06", "2026-05-04", 
+            "2026-05-25", "2026-08-31", "2026-12-25", "2026-12-28"
+        ];
+
         function formatDate(date) {
             const day = String(date.getDate()).padStart(2, '0');
             const month = String(date.getMonth() + 1).padStart(2, '0');
-            const year = date.getFullYear();
-            return `${day}/${month}/${year}`;
+            return `${day}/${month}/${date.getFullYear()}`;
         }
 
         const container = document.getElementById('schedule-container');
+        const statsContainer = document.getElementById('monthly-stats');
         
-        // This finds the "Next" Wednesday based on today's date
         let today = new Date();
         let nextPayDate = new Date();
-        // Adjust to the next Wednesday (Day 3)
         nextPayDate.setDate(today.getDate() + (3 + 7 - today.getDay()) % 7);
 
-        // If today IS Wednesday, it might show today. If you want to see the 
-        // future, we can add a check. Let's show 6 cycles starting from the next one.
+        // Calculate Paydays this month
+        let currentMonth = today.getMonth();
+        let paydaysThisMonth = 0;
+        let tempDate = new Date(today.getFullYear(), currentMonth, 1);
+        while (tempDate.getMonth() === currentMonth) {
+            if (tempDate.getDay() === 3) paydaysThisMonth++;
+            tempDate.setDate(tempDate.getDate() + 1);
+        }
+
+        const monthName = today.toLocaleString('default', { month: 'long' });
+        statsContainer.innerHTML = `<strong>${monthName} Summary:</strong> There are <strong>${paydaysThisMonth}</strong> paydays this month.`;
 
         for (let i = 0; i < 6; i++) {
-            let currentPayDate = new Date(nextPayDate);
-            currentPayDate.setDate(nextPayDate.getDate() + (i * 7));
+            let payDate = new Date(nextPayDate);
+            payDate.setDate(nextPayDate.getDate() + (i * 7));
 
-            let payslipDate = new Date(currentPayDate);
-            payslipDate.setDate(currentPayDate.getDate() - 2); // Monday
+            let slipDate = new Date(payDate); slipDate.setDate(payDate.getDate() - 2);
+            let endWeek = new Date(payDate); endWeek.setDate(payDate.getDate() - 10);
+            let startWeek = new Date(endWeek); startWeek.setDate(endWeek.getDate() - 6);
 
-            let weekEnding = new Date(currentPayDate);
-            weekEnding.setDate(currentPayDate.getDate() - 10); // Sun of previous week
-
-            let weekStarting = new Date(weekEnding);
-            weekStarting.setDate(weekEnding.getDate() - 6); // Mon of that week
+            // Check if any day in the working week was a bank holiday
+            let hasHoliday = false;
+            let checkDate = new Date(startWeek);
+            while(checkDate <= endWeek) {
+                let iso = checkDate.toISOString().split('T')[0];
+                if(bankHolidays.includes(iso)) { hasHoliday = true; break; }
+                checkDate.setDate(checkDate.getDate() + 1);
+            }
 
             const card = document.createElement('div');
             card.className = 'card';
-            if (i === 0) card.innerHTML = '<span class="emoji">💰</span>';
-            
-            card.innerHTML += `
-                <div class="row">Week Starting: <span class="date-blue">${formatDate(weekStarting)}</span></div>
-                <div class="row">Week Ending: <span class="date-green">${formatDate(weekEnding)}</span></div>
-                <div class="row">Payslip Date: <span class="date-blue">${formatDate(payslipDate)} (Mon)</span></div>
-                <div class="row">Pay Date: <span class="date-red">${formatDate(currentPayDate)} (Wed)</span></div>
+            card.innerHTML = `
+                <span class="emoji">£</span>
+                <div class="row">Week Starting: <span class="date-blue">${formatDate(startWeek)}</span></div>
+                <div class="row">Week Ending: <span class="date-green">${formatDate(endWeek)}</span></div>
+                <div class="row">Payslip: <span class="date-blue">${formatDate(slipDate)} (Mon)</span></div>
+                <div class="row">Payday: <span class="date-red">${formatDate(payDate)} (Wed)</span></div>
+                ${hasHoliday ? '<div class="holiday-note">📢 Bank Holiday Week - Check for Extra Pay!</div>' : ''}
             `;
             container.appendChild(card);
         }
