@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>My Payroll Tracker £</title>
     <style>
-        /* Responsive Theme Colors */
         :root {
             --bg-color: #f4f4f9;
             --card-bg: #ffffff;
@@ -29,39 +28,41 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            padding: 20px 10px; /* Side padding for mobile breathing room */
+            padding: 20px 10px;
             margin: 0;
             width: 100%;
             box-sizing: border-box;
         }
 
         h1 { 
-            margin-bottom: 25px; 
+            margin-bottom: 10px; 
             text-align: center;
         }
 
         .header-info {
             text-align: center;
-            margin-bottom: 20px;
-            font-size: 0.9rem;
-            opacity: 0.8;
+            margin-bottom: 25px;
+            font-size: 1.2rem; /* Made larger again */
+            font-weight: 500;
+            color: var(--text-main);
         }
 
         .card {
             background-color: var(--card-bg);
             border-radius: 12px;
             padding: 20px;
-            margin: 0 auto 15px auto; /* Centering cards */
-            width: 95%; /* Responsive width */
-            max-width: 450px; /* Prevents being too wide on desktop */
+            margin: 0 auto 15px auto;
+            width: 95%;
+            max-width: 450px;
             box-shadow: 0 4px 15px var(--shadow);
             position: relative;
-            box-sizing: border-box; /* Fixes centering on mobile */
+            box-sizing: border-box;
+            text-align: center; /* Centers all text inside the card */
         }
 
         .row { 
             margin: 10px 0; 
-            font-size: 1.05rem;
+            font-size: 1.1rem;
             line-height: 1.4;
         }
 
@@ -69,19 +70,21 @@
         .date-green { color: #4caf50; font-weight: bold; }
         .date-red { color: #e57373; font-weight: bold; }
         
+        /* Positioned £ symbol slightly better for centered text */
         .emoji { 
             position: absolute; 
             top: 15px; 
-            right: 20px; 
-            font-size: 1.4rem; 
+            right: 15px; 
+            font-size: 1.2rem;
+            opacity: 0.6;
         }
 
         .holiday-note {
             background-color: #ff9800;
             color: white;
-            font-size: 0.75rem;
-            padding: 5px 10px;
-            border-radius: 6px;
+            font-size: 0.8rem;
+            padding: 6px 12px;
+            border-radius: 8px;
             font-weight: bold;
             display: inline-block;
             margin-top: 10px;
@@ -97,7 +100,6 @@
         </div>
 
     <script>
-        // 2026 UK Bank Holidays
         const bankHolidays = [
             "2026-01-01", "2026-04-03", "2026-04-06", "2026-05-04", 
             "2026-05-25", "2026-08-31", "2026-12-25", "2026-12-28"
@@ -112,13 +114,10 @@
         const container = document.getElementById('schedule-container');
         const summary = document.getElementById('month-summary');
         
-        // Find today and the next Wednesday
         let today = new Date();
         let nextPayDay = new Date();
-        // Adjust to the next Wednesday (3)
         nextPayDay.setDate(today.getDate() + (3 + 7 - today.getDay()) % 7);
 
-        // Display how many paydays are in this specific month
         let paydaysThisMonth = 0;
         let testDate = new Date(today.getFullYear(), today.getMonth(), 1);
         while (testDate.getMonth() === today.getMonth()) {
@@ -127,21 +126,19 @@
         }
         summary.innerText = `This month has ${paydaysThisMonth} paydays.`;
 
-        // Generate 6 cycles
         for (let i = 0; i < 6; i++) {
             let payDate = new Date(nextPayDay);
             payDate.setDate(nextPayDay.getDate() + (i * 7));
 
             let slipDate = new Date(payDate);
-            slipDate.setDate(payDate.getDate() - 2); // Monday
+            slipDate.setDate(payDate.getDate() - 2);
 
             let weekEnd = new Date(payDate);
-            weekEnd.setDate(payDate.getDate() - 10); // Previous Sunday
+            weekEnd.setDate(payDate.getDate() - 10);
 
             let weekStart = new Date(weekEnd);
-            weekStart.setDate(weekEnd.getDate() - 6); // Monday of that week
+            weekStart.setDate(weekEnd.getDate() - 6);
 
-            // Check for Bank Holidays in that working week
             let isHolidayWeek = false;
             let checkDate = new Date(weekStart);
             while(checkDate <= weekEnd) {
