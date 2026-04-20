@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Smart Payroll Schedule</title>
+    <style>
+        /* Base Styles (Light Mode Default) */
+        :root {
+            --bg-color: #f4f4f9;
+            --card-bg: #ffffff;
+            --text-main: #333333;
+            --shadow: rgba(0,0,0,0.1);
+        }
+
+        /* Dark Mode Override (Triggers if your device is set to Dark) */
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --bg-color: #121212;
+                --card-bg: #1e1e1e;
+                --text-main: #ffffff;
+                --shadow: rgba(0,0,0,0.5);
+            }
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            font-family: 'Segoe UI', Tahoma, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+            transition: background-color 0.3s ease;
+        }
+
+        h1 { margin-bottom: 30px; }
+
+        .card {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 15px;
+            width: 100%;
+            max-width: 500px;
+            box-shadow: 0 4px 15px var(--shadow);
+            position: relative;
+        }
+
+        .row { margin: 8px 0; font-size: 1.1rem; }
+        .date-blue { color: #4a90e2; font-weight: bold; }
+        .date-green { color: #4caf50; font-weight: bold; }
+        .date-red { color: #e57373; font-weight: bold; }
+        .emoji { position: absolute; top: 15px; right: 20px; font-size: 1.5rem; }
+    </style>
+</head>
+<body>
+
+    <h1>Payroll Schedule</h1>
+    <div id="schedule-container"></div>
+
+    <script>
+        function formatDate(date) {
+            const day = String(date.getDate()).padStart(2, '0');
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const year = date.getFullYear();
+            return `${day}/${month}/${year}`;
+        }
+
+        const container = document.getElementById('schedule-container');
+        
+        // This finds the "Next" Wednesday based on today's date
+        let today = new Date();
+        let nextPayDate = new Date();
+        // Adjust to the next Wednesday (Day 3)
+        nextPayDate.setDate(today.getDate() + (3 + 7 - today.getDay()) % 7);
+
+        // If today IS Wednesday, it might show today. If you want to see the 
+        // future, we can add a check. Let's show 6 cycles starting from the next one.
+
+        for (let i = 0; i < 6; i++) {
+            let currentPayDate = new Date(nextPayDate);
+            currentPayDate.setDate(nextPayDate.getDate() + (i * 7));
+
+            let payslipDate = new Date(currentPayDate);
+            payslipDate.setDate(currentPayDate.getDate() - 2); // Monday
+
+            let weekEnding = new Date(currentPayDate);
+            weekEnding.setDate(currentPayDate.getDate() - 10); // Sun of previous week
+
+            let weekStarting = new Date(weekEnding);
+            weekStarting.setDate(weekEnding.getDate() - 6); // Mon of that week
+
+            const card = document.createElement('div');
+            card.className = 'card';
+            if (i === 0) card.innerHTML = '<span class="emoji">💰</span>';
+            
+            card.innerHTML += `
+                <div class="row">Week Starting: <span class="date-blue">${formatDate(weekStarting)}</span></div>
+                <div class="row">Week Ending: <span class="date-green">${formatDate(weekEnding)}</span></div>
+                <div class="row">Payslip Date: <span class="date-blue">${formatDate(payslipDate)} (Mon)</span></div>
+                <div class="row">Pay Date: <span class="date-red">${formatDate(currentPayDate)} (Wed)</span></div>
+            `;
+            container.appendChild(card);
+        }
+    </script>
+</body>
+</html>
