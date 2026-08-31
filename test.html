@@ -1,0 +1,1678 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Payroll Tracker £</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-gradient: linear-gradient(145deg, #f1f5f9 0%, #e2e8f0 100%);
+            --card-bg: rgba(255, 255, 255, 0.92);
+            --card-border: rgba(255, 255, 255, 0.95);
+            --card-shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.05), 0 4px 6px -2px rgba(15, 23, 42, 0.02);
+            --text-main: #0f172a;
+            --text-muted: #64748b;
+            --primary: #4f46e5;
+            --primary-light: #eef2ff;
+            --accent-blue: #0284c7;
+            --accent-green: #10b981;
+            --accent-green-bg: rgba(16, 185, 129, 0.1);
+            --accent-red: #ef4444;
+            --accent-amber: #f59e0b;
+            --accent-amber-bg: rgba(245, 158, 11, 0.12);
+            --pill-bg: #f8fafc;
+            --input-bg: #ffffff;
+            --input-border: #cbd5e1;
+        }
+
+        [data-theme="dark"] {
+            --bg-gradient: linear-gradient(145deg, #090d16 0%, #0f172a 100%);
+            --card-bg: rgba(30, 41, 59, 0.75);
+            --card-border: rgba(255, 255, 255, 0.07);
+            --card-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.4);
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --primary: #818cf8;
+            --primary-light: rgba(99, 102, 241, 0.15);
+            --accent-blue: #38bdf8;
+            --accent-green: #34d399;
+            --accent-green-bg: rgba(52, 211, 153, 0.12);
+            --accent-red: #f87171;
+            --accent-amber: #fbbf24;
+            --accent-amber-bg: rgba(251, 191, 36, 0.15);
+            --pill-bg: #1e293b;
+            --input-bg: #0f172a;
+            --input-border: #334155;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            transition: background-color 0.2s ease, border-color 0.2s ease;
+        }
+
+        body {
+            background: var(--bg-gradient);
+            color: var(--text-main);
+            font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 24px 14px 60px;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 540px;
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 2px 4px;
+        }
+
+        .logo-area {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .logo-icon {
+            background: var(--primary);
+            color: white;
+            width: 38px;
+            height: 38px;
+            border-radius: 12px;
+            display: grid;
+            place-items: center;
+            font-size: 1.25rem;
+            font-weight: 800;
+            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+        }
+
+        h1 {
+            font-size: 1.35rem;
+            font-weight: 800;
+            letter-spacing: -0.02em;
+        }
+
+        .theme-btn {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            color: var(--text-main);
+            padding: 7px 11px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 0.82rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            backdrop-filter: blur(8px);
+            box-shadow: var(--card-shadow);
+        }
+
+        /* Hero / Spotlight Next Payday Card */
+        .hero-card {
+            background: var(--card-bg);
+            border: 1.5px solid var(--primary);
+            border-radius: 18px;
+            padding: 18px 20px;
+            box-shadow: var(--card-shadow);
+            backdrop-filter: blur(12px);
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .hero-top-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .hero-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            background: var(--primary-light);
+            color: var(--primary);
+            font-size: 0.74rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            padding: 4px 9px;
+            border-radius: 20px;
+        }
+
+        .hero-countdown-pill {
+            background: var(--accent-amber-bg);
+            color: #d97706;
+            border: 1px solid rgba(245, 158, 11, 0.3);
+            font-size: 0.76rem;
+            font-weight: 800;
+            padding: 4px 9px;
+            border-radius: 20px;
+        }
+
+        [data-theme="dark"] .hero-countdown-pill {
+            color: #fcd34d;
+        }
+
+        .hero-date-title {
+            font-size: 1.45rem;
+            font-weight: 800;
+            color: var(--text-main);
+            letter-spacing: -0.02em;
+            line-height: 1.2;
+        }
+
+        .hero-pay-highlight {
+            display: flex;
+            align-items: baseline;
+            gap: 8px;
+            background: var(--accent-green-bg);
+            border: 1px solid rgba(16, 185, 129, 0.25);
+            padding: 8px 12px;
+            border-radius: 10px;
+        }
+
+        .hero-est-lbl {
+            font-size: 0.78rem;
+            font-weight: 700;
+            color: var(--text-muted);
+            text-transform: uppercase;
+        }
+
+        .hero-est-amount {
+            font-size: 1.15rem;
+            font-weight: 800;
+            color: var(--accent-green);
+        }
+
+        .hero-hours-tag {
+            font-size: 0.8rem;
+            font-weight: 700;
+            color: var(--text-muted);
+        }
+
+        .hero-subgrid {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 6px;
+            background: var(--pill-bg);
+            padding: 8px 10px;
+            border-radius: 10px;
+            border: 1px solid var(--card-border);
+        }
+
+        .hero-sub-item {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .hero-sub-lbl {
+            font-size: 0.65rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            color: var(--text-muted);
+            letter-spacing: 0.03em;
+        }
+
+        .hero-sub-val {
+            font-size: 0.78rem;
+            font-weight: 700;
+            color: var(--text-main);
+        }
+
+        .progress-bar-wrap {
+            width: 100%;
+            height: 6px;
+            background: var(--pill-bg);
+            border-radius: 6px;
+            overflow: hidden;
+        }
+
+        .progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, #6366f1, #10b981);
+            border-radius: 6px;
+            transition: width 0.4s ease;
+        }
+
+        /* Accordion Cards */
+        .accordion-card {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 16px;
+            box-shadow: var(--card-shadow);
+            backdrop-filter: blur(12px);
+            overflow: hidden;
+        }
+
+        .accordion-header {
+            width: 100%;
+            padding: 14px 18px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            text-align: left;
+            color: var(--text-main);
+            font-family: inherit;
+        }
+
+        .accordion-title-group {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .accordion-title {
+            font-size: 0.95rem;
+            font-weight: 800;
+        }
+
+        .accordion-tag {
+            font-size: 0.74rem;
+            font-weight: 700;
+            background: var(--pill-bg);
+            color: var(--text-muted);
+            padding: 3px 8px;
+            border-radius: 6px;
+        }
+
+        .accordion-tag.green {
+            background: var(--accent-green-bg);
+            color: var(--accent-green);
+        }
+
+        .accordion-chevron {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            transition: transform 0.25s ease;
+        }
+
+        .accordion-card.open .accordion-chevron {
+            transform: rotate(180deg);
+        }
+
+        .accordion-content {
+            max-height: 0;
+            overflow: hidden;
+            padding: 0 18px;
+            opacity: 0;
+            visibility: hidden;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            border-top: 1px solid transparent;
+            transition: max-height 0.3s cubic-bezier(0, 1, 0, 1), opacity 0.2s ease, padding 0.3s ease, visibility 0.3s;
+        }
+
+        .accordion-card.open .accordion-content {
+            max-height: 1400px;
+            opacity: 1;
+            visibility: visible;
+            padding: 14px 18px 18px 18px;
+            border-top: 1px solid var(--card-border);
+            transition: max-height 0.35s ease-in-out, opacity 0.25s ease, padding 0.3s ease;
+        }
+
+        /* Input Grid */
+        .calc-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .input-group label {
+            font-size: 0.72rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.03em;
+            color: var(--text-muted);
+        }
+
+        .input-wrapper {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
+        .input-prefix {
+            position: absolute;
+            left: 11px;
+            font-weight: 700;
+            color: var(--text-muted);
+            font-size: 0.88rem;
+        }
+
+        .calc-input {
+            width: 100%;
+            background: var(--input-bg);
+            border: 1px solid var(--input-border);
+            color: var(--text-main);
+            padding: 8px 11px;
+            border-radius: 9px;
+            font-size: 0.9rem;
+            font-family: inherit;
+            font-weight: 600;
+            outline: none;
+        }
+
+        .calc-input.has-prefix {
+            padding-left: 26px;
+        }
+
+        .calc-input:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 2.5px var(--primary-light);
+        }
+
+        .select-input {
+            width: 100%;
+            background: var(--input-bg);
+            border: 1px solid var(--input-border);
+            color: var(--text-main);
+            padding: 8px 9px;
+            border-radius: 9px;
+            font-size: 0.85rem;
+            font-family: inherit;
+            font-weight: 600;
+            outline: none;
+            cursor: pointer;
+        }
+
+        /* Sub-Drawer / Details */
+        details.sub-drawer {
+            background: var(--pill-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        details.sub-drawer summary {
+            padding: 10px 12px;
+            font-size: 0.8rem;
+            font-weight: 700;
+            cursor: pointer;
+            list-style: none;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            color: var(--text-main);
+            user-select: none;
+        }
+
+        details.sub-drawer summary::-webkit-details-marker {
+            display: none;
+        }
+
+        details.sub-drawer summary::after {
+            content: '▾';
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            transition: transform 0.2s ease;
+        }
+
+        details.sub-drawer[open] summary::after {
+            transform: rotate(180deg);
+        }
+
+        .sub-drawer-content {
+            padding: 12px;
+            border-top: 1px solid var(--card-border);
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .deduct-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.82rem;
+            color: var(--text-muted);
+        }
+
+        .rate-summary-banner {
+            background: var(--accent-green-bg);
+            border: 1px solid rgba(16, 185, 129, 0.25);
+            border-radius: 12px;
+            padding: 10px 14px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.84rem;
+            flex-wrap: wrap;
+            gap: 6px;
+        }
+
+        /* YTD Grid */
+        .ytd-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+        }
+
+        .ytd-stat-box {
+            background: var(--pill-bg);
+            border-radius: 10px;
+            padding: 9px 11px;
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .ytd-stat-value {
+            font-size: 0.98rem;
+            font-weight: 800;
+            color: var(--text-main);
+        }
+
+        /* Month Navigator Card */
+        .month-nav-card {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 16px;
+            padding: 14px 16px;
+            box-shadow: var(--card-shadow);
+            backdrop-filter: blur(12px);
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .month-nav-controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .nav-btn {
+            background: var(--pill-bg);
+            border: 1px solid var(--card-border);
+            color: var(--text-main);
+            width: 38px;
+            height: 38px;
+            border-radius: 10px;
+            cursor: pointer;
+            display: grid;
+            place-items: center;
+            font-size: 0.95rem;
+            font-weight: 800;
+        }
+
+        .nav-btn:hover {
+            background: var(--primary);
+            color: white;
+        }
+
+        .month-select-wrap {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex: 1;
+            justify-content: center;
+        }
+
+        .month-dropdown {
+            background: var(--input-bg);
+            border: 1px solid var(--input-border);
+            color: var(--text-main);
+            padding: 7px 12px;
+            border-radius: 10px;
+            font-size: 0.92rem;
+            font-weight: 800;
+            font-family: inherit;
+            cursor: pointer;
+            outline: none;
+            text-align: center;
+        }
+
+        .today-badge-btn {
+            background: var(--primary-light);
+            color: var(--primary);
+            border: none;
+            padding: 5px 9px;
+            border-radius: 8px;
+            font-size: 0.74rem;
+            font-weight: 800;
+            cursor: pointer;
+        }
+
+        .month-status-banner {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 9px 12px;
+            border-radius: 10px;
+            background: var(--pill-bg);
+            font-size: 0.82rem;
+            font-weight: 700;
+        }
+
+        .month-status-banner.bonus-month {
+            background: var(--accent-amber-bg);
+            border: 1px solid rgba(245, 158, 11, 0.35);
+            color: #b45309;
+        }
+
+        [data-theme="dark"] .month-status-banner.bonus-month {
+            color: #fde68a;
+        }
+
+        .view-mode-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 2px;
+            gap: 8px;
+        }
+
+        .pill-group {
+            display: flex;
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 9px;
+            padding: 2.5px;
+        }
+
+        .pill-btn {
+            background: transparent;
+            border: none;
+            color: var(--text-muted);
+            padding: 4px 10px;
+            font-size: 0.76rem;
+            font-weight: 700;
+            border-radius: 7px;
+            cursor: pointer;
+        }
+
+        .pill-btn.active {
+            background: var(--primary);
+            color: white;
+        }
+
+        /* Clean Pay Cards */
+        .schedule-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .card {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 16px;
+            padding: 16px 18px;
+            box-shadow: var(--card-shadow);
+            backdrop-filter: blur(10px);
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .card:hover {
+            transform: translateY(-1.5px);
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-bottom: 8px;
+            border-bottom: 1px solid var(--card-border);
+        }
+
+        .card-title {
+            font-size: 0.95rem;
+            font-weight: 800;
+            color: var(--text-main);
+        }
+
+        .pay-est-badge {
+            background: var(--accent-green-bg);
+            color: var(--accent-green);
+            font-size: 0.82rem;
+            font-weight: 800;
+            padding: 4px 9px;
+            border-radius: 7px;
+        }
+
+        .pay-est-badge.bh-boost {
+            background: rgba(245, 158, 11, 0.15);
+            color: #d97706;
+            border: 1px solid rgba(245, 158, 11, 0.3);
+        }
+
+        [data-theme="dark"] .pay-est-badge.bh-boost {
+            color: #fbbf24;
+        }
+
+        .grid-info {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            font-size: 0.85rem;
+        }
+
+        .info-item {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .info-label {
+            font-size: 0.68rem;
+            text-transform: uppercase;
+            font-weight: 700;
+            color: var(--text-muted);
+            letter-spacing: 0.03em;
+        }
+
+        .info-value {
+            font-weight: 600;
+            color: var(--text-main);
+        }
+
+        .val-blue { color: var(--accent-blue); }
+        .val-green { color: var(--accent-green); }
+
+        .holiday-card-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 11px;
+            border-radius: 9px;
+            font-size: 0.78rem;
+            font-weight: 600;
+            gap: 8px;
+        }
+
+        .holiday-card-bar.worked {
+            background: rgba(245, 158, 11, 0.12);
+            border: 1px solid rgba(245, 158, 11, 0.3);
+            color: #d97706;
+        }
+
+        [data-theme="dark"] .holiday-card-bar.worked {
+            color: #fcd34d;
+        }
+
+        .holiday-card-bar.off {
+            background: var(--pill-bg);
+            border: 1px solid var(--card-border);
+            color: var(--text-muted);
+        }
+
+        .bh-toggle-btn {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            color: var(--text-main);
+            font-size: 0.72rem;
+            font-weight: 700;
+            padding: 3px 7px;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+
+        .bh-toggle-btn:hover {
+            border-color: var(--primary);
+        }
+
+        .cal-export-btn {
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            cursor: pointer;
+            font-size: 0.76rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            padding: 3px 6px;
+            border-radius: 6px;
+        }
+        .cal-export-btn:hover {
+            color: var(--primary);
+            background: var(--primary-light);
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <div class="logo-area">
+            <div class="logo-icon">£</div>
+            <div>
+                <h1>Payroll Tracker</h1>
+            </div>
+        </div>
+        <button class="theme-btn" id="theme-toggle" aria-label="Toggle Theme">
+            <span id="theme-icon">🌙</span> <span id="theme-text">Dark</span>
+        </button>
+    </header>
+
+    <!-- Spotlight Next Payday Hero Card -->
+    <div class="hero-card" id="hero-card">
+        <div class="hero-top-row">
+            <div class="hero-badge">⚡ Next Payday</div>
+            <div class="hero-countdown-pill" id="hero-countdown-pill">Calculating...</div>
+        </div>
+
+        <div class="hero-date-title" id="hero-date-title">Wednesday, 2 Sept 2026</div>
+
+        <div class="hero-pay-highlight">
+            <span class="hero-est-lbl">Est. Take-Home:</span>
+            <span class="hero-est-amount" id="hero-est-amount">£0.00</span>
+            <span class="hero-hours-tag" id="hero-hours-tag">(36h)</span>
+        </div>
+
+        <div class="hero-subgrid">
+            <div class="hero-sub-item">
+                <span class="hero-sub-lbl">Payslip Released</span>
+                <span class="hero-sub-val" id="hero-slip-val">Mon 31 Aug</span>
+            </div>
+            <div class="hero-sub-item">
+                <span class="hero-sub-lbl">Worked Period</span>
+                <span class="hero-sub-val" id="hero-period-val">17/08 → 23/08</span>
+            </div>
+            <div class="hero-sub-item">
+                <span class="hero-sub-lbl">Tax Week</span>
+                <span class="hero-sub-val" id="hero-week-val">Week 22</span>
+            </div>
+        </div>
+
+        <div class="progress-bar-wrap">
+            <div class="progress-bar" id="cycle-progress" style="width: 0%;"></div>
+        </div>
+    </div>
+
+    <!-- 1. Collapsible Wage, Shift Pattern & Tax Settings -->
+    <section class="accordion-card" id="calc-accordion">
+        <button class="accordion-header" onclick="toggleAccordion('calc-accordion')" type="button">
+            <div class="accordion-title-group">
+                <span>🧮</span>
+                <span class="accordion-title">Hourly Rate, Shifts & Tax Settings</span>
+            </div>
+            <div class="accordion-title-group">
+                <span class="accordion-tag green" id="calc-header-summary">Rate: £13.45/hr</span>
+                <span class="accordion-chevron">▼</span>
+            </div>
+        </button>
+
+        <div class="accordion-content">
+            <div class="calc-grid">
+                <div class="input-group">
+                    <label for="hourly-rate">Hourly Rate (£)</label>
+                    <div class="input-wrapper">
+                        <span class="input-prefix">£</span>
+                        <input type="number" id="hourly-rate" class="calc-input has-prefix" placeholder="13.45" step="0.05" min="0">
+                    </div>
+                </div>
+
+                <div class="input-group">
+                    <label for="shift-pattern">Shift Pattern</label>
+                    <select id="shift-pattern" class="select-input" onchange="onShiftPatternChange()">
+                        <option value="4on4off-cal" selected>📅 4 on 4 off (Exact Calendar Sync)</option>
+                        <option value="4on4off-alt">⚡ 4 on 4 off (Simple Alternating)</option>
+                        <option value="6on3off-cal">📅 6 on 3 off (Exact Calendar Sync)</option>
+                        <option value="standard-37">Standard Fixed (37.5h)</option>
+                        <option value="standard-40">Standard Fixed (40h)</option>
+                        <option value="custom">Custom Repeating Pattern...</option>
+                    </select>
+                </div>
+
+                <!-- Calendar Date Anchor -->
+                <div class="input-group" id="anchor-date-group">
+                    <label for="anchor-date-input">First Day of Any 4-On Block</label>
+                    <input type="date" id="anchor-date-input" class="calc-input">
+                </div>
+
+                <!-- Simple Alternating Choice -->
+                <div class="input-group" id="alt-choice-group" style="display: none;">
+                    <label for="alt-choice-select">Pay Week 22 Base Hours</label>
+                    <select id="alt-choice-select" class="select-input" onchange="calculatePay()">
+                        <option value="36" selected>36 Hours (3 Shifts)</option>
+                        <option value="48">48 Hours (4 Shifts)</option>
+                    </select>
+                </div>
+
+                <!-- Custom Pattern Input -->
+                <div class="input-group" id="custom-pattern-group" style="display: none; grid-column: span 2;">
+                    <label for="pattern-sequence">Hours Sequence (Comma Separated)</label>
+                    <input type="text" id="pattern-sequence" class="calc-input" placeholder="e.g. 36, 48 or 48, 36, 60" value="36, 48">
+                </div>
+
+                <div class="input-group">
+                    <label for="ot-hours">Weekly Overtime Hours</label>
+                    <input type="number" id="ot-hours" class="calc-input" placeholder="0" step="0.5" min="0">
+                </div>
+
+                <div class="input-group">
+                    <label for="overtime-rate">Overtime Multiplier</label>
+                    <select id="overtime-rate" class="select-input">
+                        <option value="1.5" selected>1.5x (Time & a Half)</option>
+                        <option value="1.25">1.25x</option>
+                        <option value="2.0">2.0x (Double Time)</option>
+                        <option value="1.0">1.0x (Flat Rate)</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Dynamic Rate Summary -->
+            <div class="rate-summary-banner" id="pattern-summary-banner">
+                <span>⚡ Shift pattern baseline:</span>
+                <span id="rate-summary-values" style="font-weight: 700; color: var(--accent-green);">Calculating...</span>
+            </div>
+
+            <!-- Sub-Drawer: Bank Holiday Pay, Pension & Student Loans -->
+            <details class="sub-drawer">
+                <summary>⚙️ Extra Options (Bank Hol, Pension, Loans)</summary>
+                <div class="sub-drawer-content">
+                    <div class="calc-grid">
+                        <div class="input-group">
+                            <label for="bh-hours">Bank Hol Shift Hours</label>
+                            <input type="number" id="bh-hours" class="calc-input" placeholder="12" step="0.5" min="0">
+                        </div>
+
+                        <div class="input-group">
+                            <label for="bh-multiplier">Bank Hol Rate Multiplier</label>
+                            <select id="bh-multiplier" class="select-input">
+                                <option value="1.5">1.5x (Time & Half)</option>
+                                <option value="2.0" selected>2.0x (Double Time)</option>
+                                <option value="2.5">2.5x</option>
+                            </select>
+                        </div>
+
+                        <div class="input-group">
+                            <label for="pension-rate">Workplace Pension</label>
+                            <select id="pension-rate" class="select-input">
+                                <option value="0">0% (None)</option>
+                                <option value="0.03">3%</option>
+                                <option value="0.05" selected>5% (Standard)</option>
+                                <option value="0.08">8%</option>
+                            </select>
+                        </div>
+
+                        <div class="input-group">
+                            <label for="student-loan">Student Loan</label>
+                            <select id="student-loan" class="select-input">
+                                <option value="none" selected>None</option>
+                                <option value="plan1">Plan 1 (£501/wk)</option>
+                                <option value="plan2">Plan 2 (£548/wk)</option>
+                                <option value="plan4">Plan 4 Scotland</option>
+                                <option value="postgrad">Postgrad Loan</option>
+                            </select>
+                        </div>
+
+                        <div class="input-group" style="grid-column: span 2;">
+                            <label for="salary-sacrifice">Salary Sacrifice / Pre-Tax (£/wk)</label>
+                            <div class="input-wrapper">
+                                <span class="input-prefix">£</span>
+                                <input type="number" id="salary-sacrifice" class="calc-input has-prefix" placeholder="0.00" step="1" min="0">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </details>
+
+            <!-- Sub-Drawer: Tax Info -->
+            <details class="sub-drawer">
+                <summary>🧾 Tax & NI Deduction Rules (1257L)</summary>
+                <div class="sub-drawer-content">
+                    <div class="deduct-row">
+                        <span>Personal Allowance:</span>
+                        <span>£12,570/yr (£241.73/wk Tax-Free)</span>
+                    </div>
+                    <div class="deduct-row">
+                        <span>Basic Income Tax:</span>
+                        <span>20% above allowance</span>
+                    </div>
+                    <div class="deduct-row">
+                        <span>National Insurance:</span>
+                        <span>8% above £242/wk</span>
+                    </div>
+                </div>
+            </details>
+        </div>
+    </section>
+
+    <!-- 2. Collapsible Tax Year / YTD Summary -->
+    <section class="accordion-card" id="ytd-accordion">
+        <button class="accordion-header" onclick="toggleAccordion('ytd-accordion')" type="button">
+            <div class="accordion-title-group">
+                <span>📊</span>
+                <span class="accordion-title" id="ytd-tax-year-title">Tax Year 2026/27 Overview</span>
+            </div>
+            <div class="accordion-title-group">
+                <span class="accordion-tag" id="ytd-week-progress">Week 22 of 52</span>
+                <span class="accordion-chevron">▼</span>
+            </div>
+        </button>
+
+        <div class="accordion-content">
+            <div class="ytd-grid">
+                <div class="ytd-stat-box">
+                    <span class="stat-lbl">YTD Gross Earned</span>
+                    <span class="ytd-stat-value" id="ytd-gross">£0.00</span>
+                </div>
+                <div class="ytd-stat-box">
+                    <span class="stat-lbl">YTD Take-Home (Net)</span>
+                    <span class="ytd-stat-value" style="color: var(--accent-green);" id="ytd-net">£0.00</span>
+                </div>
+                <div class="ytd-stat-box">
+                    <span class="stat-lbl">Est. Annual Net (52 Wks)</span>
+                    <span class="ytd-stat-value" id="ytd-annual-net">£0.00</span>
+                </div>
+                <div class="ytd-stat-box">
+                    <span class="stat-lbl">Tax-Free Allowance Left</span>
+                    <span class="ytd-stat-value" style="color: var(--accent-blue);" id="ytd-allowance-left">£12,570</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 3. 🗓️ Interactive Month Navigator & 5-Payday Radar -->
+    <section class="month-nav-card" id="month-nav-section">
+        <div class="month-nav-controls">
+            <button class="nav-btn" onclick="navigateMonth(-1)" aria-label="Previous Month">◀</button>
+            <div class="month-select-wrap">
+                <select id="month-select" class="month-dropdown" onchange="onMonthDropdownChange(this.value)"></select>
+                <button class="today-badge-btn" id="today-btn" onclick="resetToCurrentMonth()">Today</button>
+            </div>
+            <button class="nav-btn" onclick="navigateMonth(1)" aria-label="Next Month">▶</button>
+        </div>
+
+        <div class="month-status-banner" id="month-status-banner">
+            <span id="month-payday-count">Loading month...</span>
+            <span id="month-est-total" style="font-weight: 800;">£0.00</span>
+        </div>
+    </section>
+
+    <!-- View Mode Switcher -->
+    <div class="view-mode-bar">
+        <span style="font-size: 0.8rem; font-weight: 700; color: var(--text-muted);">View Mode:</span>
+        <div class="pill-group">
+            <button class="pill-btn active" id="btn-mode-month" onclick="setViewMode('month')">📅 Month</button>
+            <button class="pill-btn" id="btn-mode-4" onclick="setViewMode('4')">4 Wks</button>
+            <button class="pill-btn" id="btn-mode-8" onclick="setViewMode('8')">8 Wks</button>
+            <button class="pill-btn" id="btn-mode-12" onclick="setViewMode('12')">12 Wks</button>
+        </div>
+    </div>
+
+    <!-- 4. Pay Schedule List -->
+    <main class="schedule-list" id="schedule-container"></main>
+</div>
+
+<script>
+    // Bank Holidays UK (England & Wales)
+    const bankHolidays = {
+        "2025-01-01": "New Year's Day", "2025-04-18": "Good Friday", "2025-04-21": "Easter Monday",
+        "2025-05-05": "Early May Bank Holiday", "2025-05-26": "Spring Bank Holiday", "2025-08-25": "Summer Bank Holiday",
+        "2025-12-25": "Christmas Day", "2025-12-26": "Boxing Day",
+        "2026-01-01": "New Year's Day", "2026-04-03": "Good Friday", "2026-04-06": "Easter Monday",
+        "2026-05-04": "Early May Bank Holiday", "2026-05-25": "Spring Bank Holiday", "2026-08-31": "Summer Bank Holiday",
+        "2026-12-25": "Christmas Day", "2026-12-28": "Boxing Day (Substitute)",
+        "2027-01-01": "New Year's Day", "2027-03-26": "Good Friday", "2027-03-29": "Easter Monday",
+        "2027-05-03": "Early May Bank Holiday", "2027-05-31": "Spring Bank Holiday", "2027-08-30": "Summer Bank Holiday",
+        "2027-12-27": "Christmas Day (Substitute)", "2027-12-28": "Boxing Day (Substitute)"
+    };
+
+    let currentViewMode = 'month';
+    let viewYear = new Date().getFullYear();
+    let viewMonth = new Date().getMonth();
+    let currentTaxWeekGlobal = 22;
+
+    // Elements
+    const rateInput = document.getElementById('hourly-rate');
+    const shiftPatternSelect = document.getElementById('shift-pattern');
+    const anchorDateGroup = document.getElementById('anchor-date-group');
+    const anchorDateInput = document.getElementById('anchor-date-input');
+    const altChoiceGroup = document.getElementById('alt-choice-group');
+    const altChoiceSelect = document.getElementById('alt-choice-select');
+    const customPatternGroup = document.getElementById('custom-pattern-group');
+    const patternSeqInput = document.getElementById('pattern-sequence');
+    const otHoursInput = document.getElementById('ot-hours');
+    const overtimeRateSelect = document.getElementById('overtime-rate');
+    const bhHoursInput = document.getElementById('bh-hours');
+    const bhMultiplierSelect = document.getElementById('bh-multiplier');
+    const pensionRateSelect = document.getElementById('pension-rate');
+    const studentLoanSelect = document.getElementById('student-loan');
+    const salarySacrificeInput = document.getElementById('salary-sacrifice');
+
+    const calcHeaderSummary = document.getElementById('calc-header-summary');
+    const rateSummaryValues = document.getElementById('rate-summary-values');
+
+    const ytdGrossDisplay = document.getElementById('ytd-gross');
+    const ytdNetDisplay = document.getElementById('ytd-net');
+    const ytdAnnualNetDisplay = document.getElementById('ytd-annual-net');
+    const ytdAllowanceLeftDisplay = document.getElementById('ytd-allowance-left');
+    const ytdTaxYearTitle = document.getElementById('ytd-tax-year-title');
+    const ytdWeekProgress = document.getElementById('ytd-week-progress');
+
+    const monthSelect = document.getElementById('month-select');
+    const monthStatusBanner = document.getElementById('month-status-banner');
+    const monthPaydayCount = document.getElementById('month-payday-count');
+    const monthEstTotal = document.getElementById('month-est-total');
+    const monthNavSection = document.getElementById('month-nav-section');
+
+    function toggleAccordion(id) {
+        document.getElementById(id).classList.toggle('open');
+    }
+
+    function onShiftPatternChange() {
+        const val = shiftPatternSelect.value;
+        anchorDateGroup.style.display = (val === '4on4off-cal' || val === '6on3off-cal') ? 'flex' : 'none';
+        altChoiceGroup.style.display = (val === '4on4off-alt') ? 'flex' : 'none';
+        customPatternGroup.style.display = (val === 'custom') ? 'flex' : 'none';
+
+        if (val === '4on4off-cal') {
+            anchorDateGroup.querySelector('label').textContent = 'First Day of Any 4-On Block';
+            if (!anchorDateInput.value) anchorDateInput.value = '2026-08-18';
+        } else if (val === '6on3off-cal') {
+            anchorDateGroup.querySelector('label').textContent = 'First Day of Any 6-On Block';
+            if (!anchorDateInput.value) anchorDateInput.value = '2026-08-18';
+        }
+
+        calculatePay();
+    }
+
+    function isDateOnShift(dateObj, patternType) {
+        const anchorVal = anchorDateInput.value || '2026-08-18';
+        const [ay, am, ad] = anchorVal.split('-').map(Number);
+        const anchor = new Date(ay, am - 1, ad);
+
+        const cycleLength = (patternType === '6on3off-cal') ? 9 : 8;
+        const onDays = (patternType === '6on3off-cal') ? 6 : 4;
+
+        let diffDays = Math.round((dateObj.getTime() - anchor.getTime()) / (1000 * 60 * 60 * 24));
+        let cycleDay = ((diffDays % cycleLength) + cycleLength) % cycleLength;
+        return cycleDay < onDays;
+    }
+
+    function calculateHoursFromCalendar(weekStart, patternType) {
+        let totalHours = 0;
+        for (let i = 0; i < 7; i++) {
+            let day = new Date(weekStart);
+            day.setDate(weekStart.getDate() + i);
+            if (isDateOnShift(day, patternType)) {
+                totalHours += 12;
+            }
+        }
+        return totalHours;
+    }
+
+    function getWeekPatternHours(taxWeek, weekStart) {
+        const val = shiftPatternSelect.value;
+
+        if (val === '4on4off-cal' || val === '6on3off-cal') {
+            return calculateHoursFromCalendar(weekStart, val);
+        }
+
+        if (val === '4on4off-alt') {
+            const startHours = parseFloat(altChoiceSelect.value) || 36;
+            const isEvenOffset = (taxWeek - 22) % 2 === 0;
+            return isEvenOffset ? startHours : (startHours === 36 ? 48 : 36);
+        }
+
+        if (val === 'standard-37') return 37.5;
+        if (val === 'standard-40') return 40;
+
+        if (val === 'custom') {
+            const raw = patternSeqInput.value || '36, 48';
+            const parts = raw.split(',').map(s => parseFloat(s.trim())).filter(n => !isNaN(n) && n >= 0);
+            const seq = parts.length > 0 ? parts : [37.5];
+            const index = (((taxWeek - 22) % seq.length) + seq.length) % seq.length;
+            return seq[index];
+        }
+
+        return 36;
+    }
+
+    function toggleBankHolidayOverride(taxWeek) {
+        const key = `payroll-bh-worked-wk-${taxWeek}`;
+        const current = localStorage.getItem(key);
+        if (current === 'worked') {
+            localStorage.setItem(key, 'off');
+        } else if (current === 'off') {
+            localStorage.setItem(key, 'worked');
+        } else {
+            localStorage.setItem(key, 'worked');
+        }
+        calculatePay();
+    }
+
+    function isBankHolidayActuallyWorked(taxWeek, holidaysInCycle) {
+        const override = localStorage.getItem(`payroll-bh-worked-wk-${taxWeek}`);
+        if (override === 'worked') return true;
+        if (override === 'off') return false;
+
+        const val = shiftPatternSelect.value;
+        if (val === '4on4off-cal' || val === '6on3off-cal') {
+            return holidaysInCycle.some(h => isDateOnShift(h.date, val));
+        }
+
+        const bhHours = parseFloat(bhHoursInput.value) || 0;
+        return bhHours > 0;
+    }
+
+    function populateMonthDropdown() {
+        monthSelect.innerHTML = '';
+        const startYear = 2026;
+        const endYear = 2027;
+
+        for (let y = startYear; y <= endYear; y++) {
+            for (let m = 0; m < 12; m++) {
+                const d = new Date(y, m, 1);
+                const label = d.toLocaleString('en-GB', { month: 'long', year: 'numeric' });
+                const value = `${y}-${m}`;
+                const opt = document.createElement('option');
+                opt.value = value;
+                opt.textContent = label;
+                if (y === viewYear && m === viewMonth) {
+                    opt.selected = true;
+                }
+                monthSelect.appendChild(opt);
+            }
+        }
+    }
+
+    function onMonthDropdownChange(val) {
+        const [y, m] = val.split('-').map(Number);
+        viewYear = y;
+        viewMonth = m;
+        setViewMode('month');
+    }
+
+    function navigateMonth(offset) {
+        viewMonth += offset;
+        if (viewMonth < 0) {
+            viewMonth = 11;
+            viewYear--;
+        } else if (viewMonth > 11) {
+            viewMonth = 0;
+            viewYear++;
+        }
+        monthSelect.value = `${viewYear}-${viewMonth}`;
+        setViewMode('month');
+    }
+
+    function resetToCurrentMonth() {
+        const today = new Date();
+        viewYear = today.getFullYear();
+        viewMonth = today.getMonth();
+        monthSelect.value = `${viewYear}-${viewMonth}`;
+        setViewMode('month');
+    }
+
+    function setViewMode(mode) {
+        currentViewMode = mode;
+        ['month', '4', '8', '12'].forEach(m => {
+            const btn = document.getElementById(`btn-mode-${m}`);
+            if (btn) btn.classList.toggle('active', currentViewMode === m);
+        });
+        monthNavSection.style.display = (mode === 'month') ? 'flex' : 'none';
+        renderSchedule();
+    }
+
+    function getUKTaxInfo(date) {
+        const year = date.getFullYear();
+        let taxYearStart = new Date(year, 3, 6);
+        let taxStartYear = year;
+        if (date < taxYearStart) {
+            taxYearStart = new Date(year - 1, 3, 6);
+            taxStartYear = year - 1;
+        }
+        const diffTime = date.getTime() - taxYearStart.getTime();
+        const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+        const weekNum = Math.floor(diffDays / 7) + 1;
+        const taxYearLabel = `${taxStartYear}/${String(taxStartYear + 1).slice(-2)}`;
+        return { weekNum, taxYearLabel };
+    }
+
+    function getLocalDateString(d) {
+        const year = d.getFullYear();
+        const month = String(d.getMonth() + 1).padStart(2, '0');
+        const day = String(d.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`;
+    }
+
+    function formatDate(date, options = { day: '2-digit', month: 'short', year: 'numeric' }) {
+        return new Intl.DateTimeFormat('en-GB', options).format(date);
+    }
+
+    function formatShortDate(date) {
+        return `${String(date.getDate()).padStart(2, '0')}/${String(date.getMonth() + 1).padStart(2, '0')}/${date.getFullYear()}`;
+    }
+
+    function formatCurrency(num) {
+        return new Intl.NumberFormat('en-GB', { style: 'currency', currency: 'GBP' }).format(num);
+    }
+
+    function calculateUKDeductions(grossEarnings, pensionRate, studentLoanPlan, salarySacrifice) {
+        const adjustedGross = Math.max(0, grossEarnings - salarySacrifice);
+
+        const qualifyingPension = Math.max(0, adjustedGross - 120);
+        const weeklyPension = qualifyingPension * pensionRate;
+
+        const weeklyAllowance = 12570 / 52;
+        const weeklyHigherThreshold = 50270 / 52;
+        const weeklyAdditionalThreshold = 125140 / 52;
+
+        let weeklyTax = 0;
+        if (adjustedGross > weeklyAllowance) {
+            const basicTaxable = Math.min(adjustedGross, weeklyHigherThreshold) - weeklyAllowance;
+            weeklyTax += basicTaxable * 0.20;
+
+            if (adjustedGross > weeklyHigherThreshold) {
+                const higherTaxable = Math.min(adjustedGross, weeklyAdditionalThreshold) - weeklyHigherThreshold;
+                weeklyTax += higherTaxable * 0.40;
+
+                if (adjustedGross > weeklyAdditionalThreshold) {
+                    const additionalTaxable = adjustedGross - weeklyAdditionalThreshold;
+                    weeklyTax += additionalTaxable * 0.45;
+                }
+            }
+        }
+
+        let weeklyNI = 0;
+        const niThreshold = 242;
+        const niUpperLimit = 967;
+
+        if (adjustedGross > niThreshold) {
+            const mainNITaxable = Math.min(adjustedGross, niUpperLimit) - niThreshold;
+            weeklyNI += mainNITaxable * 0.08;
+
+            if (adjustedGross > niUpperLimit) {
+                const higherNITaxable = adjustedGross - niUpperLimit;
+                weeklyNI += higherNITaxable * 0.02;
+            }
+        }
+
+        let weeklyStudentLoan = 0;
+        const slThresholds = {
+            'plan1': { threshold: 501.25, rate: 0.09 },
+            'plan2': { threshold: 547.50, rate: 0.09 },
+            'plan4': { threshold: 629.71, rate: 0.09 },
+            'postgrad': { threshold: 403.84, rate: 0.06 }
+        };
+
+        if (studentLoanPlan && slThresholds[studentLoanPlan]) {
+            const plan = slThresholds[studentLoanPlan];
+            if (adjustedGross > plan.threshold) {
+                weeklyStudentLoan = (adjustedGross - plan.threshold) * plan.rate;
+            }
+        }
+
+        const weeklyNet = Math.max(0, adjustedGross - weeklyTax - weeklyNI - weeklyPension - weeklyStudentLoan);
+
+        return {
+            tax: weeklyTax,
+            ni: weeklyNI,
+            pension: weeklyPension,
+            studentLoan: weeklyStudentLoan,
+            salarySacrifice: salarySacrifice,
+            net: weeklyNet
+        };
+    }
+
+    function calculatePayForHours(hours, isBankHolidayWorked = false) {
+        const rate = parseFloat(rateInput.value) || 0;
+        const otHours = parseFloat(otHoursInput.value) || 0;
+        const otMultiplier = parseFloat(overtimeRateSelect.value) || 1.5;
+        const bhHours = parseFloat(bhHoursInput.value) || 0;
+        const bhMultiplier = parseFloat(bhMultiplierSelect.value) || 2.0;
+        const pensionRate = parseFloat(pensionRateSelect.value) || 0;
+        const studentLoanPlan = studentLoanSelect.value;
+        const salarySacrifice = parseFloat(salarySacrificeInput.value) || 0;
+
+        let gross = (rate * hours) + (rate * otMultiplier * otHours);
+        if (isBankHolidayWorked && bhHours > 0) {
+            gross += (rate * bhMultiplier) * bhHours;
+        }
+
+        const ded = calculateUKDeductions(gross, pensionRate, studentLoanPlan, salarySacrifice);
+        return {
+            gross: gross,
+            net: ded.net,
+            deductions: ded
+        };
+    }
+
+    function calculatePay() {
+        const rate = parseFloat(rateInput.value) || 0;
+        calcHeaderSummary.textContent = `Rate: ${formatCurrency(rate)}/hr`;
+
+        const net36 = calculatePayForHours(36).net;
+        const net48 = calculatePayForHours(48).net;
+        rateSummaryValues.innerHTML = `36h: <strong>${formatCurrency(net36)}</strong> | 48h: <strong>${formatCurrency(net48)}</strong>`;
+
+        updateYTDSummary();
+
+        localStorage.setItem('payroll-calc-rate', rateInput.value);
+        localStorage.setItem('payroll-shift-pattern', shiftPatternSelect.value);
+        localStorage.setItem('payroll-anchor-date', anchorDateInput.value);
+        localStorage.setItem('payroll-alt-choice', altChoiceSelect.value);
+        localStorage.setItem('payroll-pattern-sequence', patternSeqInput.value);
+        localStorage.setItem('payroll-calc-ot-hours', otHoursInput.value);
+        localStorage.setItem('payroll-calc-ot-mult', overtimeRateSelect.value);
+        localStorage.setItem('payroll-calc-bh-hours', bhHoursInput.value);
+        localStorage.setItem('payroll-calc-bh-mult', bhMultiplierSelect.value);
+        localStorage.setItem('payroll-calc-pension', pensionRateSelect.value);
+        localStorage.setItem('payroll-calc-student-loan', studentLoanSelect.value);
+        localStorage.setItem('payroll-calc-salary-sac', salarySacrificeInput.value);
+
+        renderSchedule();
+    }
+
+    function updateYTDSummary() {
+        const weeksCompleted = Math.max(1, currentTaxWeekGlobal);
+        const avgHours = 42;
+
+        const avgNet = calculatePayForHours(avgHours).net;
+        const avgGross = calculatePayForHours(avgHours).gross;
+
+        const ytdGross = avgGross * weeksCompleted;
+        const ytdNet = avgNet * weeksCompleted;
+        const annualNet = avgNet * 52;
+        const remainingAllowance = Math.max(0, 12570 - ytdGross);
+
+        ytdGrossDisplay.textContent = formatCurrency(ytdGross);
+        ytdNetDisplay.textContent = formatCurrency(ytdNet);
+        ytdAnnualNetDisplay.textContent = formatCurrency(annualNet);
+        ytdAllowanceLeftDisplay.textContent = formatCurrency(remainingAllowance);
+        ytdWeekProgress.textContent = `Week ${weeksCompleted} of 52`;
+    }
+
+    function loadSavedCalcSettings() {
+        rateInput.value = localStorage.getItem('payroll-calc-rate') || '13.45';
+        shiftPatternSelect.value = localStorage.getItem('payroll-shift-pattern') || '4on4off-cal';
+        anchorDateInput.value = localStorage.getItem('payroll-anchor-date') || '2026-08-18';
+        altChoiceSelect.value = localStorage.getItem('payroll-alt-choice') || '36';
+        patternSeqInput.value = localStorage.getItem('payroll-pattern-sequence') || '36, 48';
+        otHoursInput.value = localStorage.getItem('payroll-calc-ot-hours') || '';
+        overtimeRateSelect.value = localStorage.getItem('payroll-calc-ot-mult') || '1.5';
+        bhHoursInput.value = localStorage.getItem('payroll-calc-bh-hours') || '';
+        bhMultiplierSelect.value = localStorage.getItem('payroll-calc-bh-mult') || '2.0';
+        pensionRateSelect.value = localStorage.getItem('payroll-calc-pension') || '0.05';
+        studentLoanSelect.value = localStorage.getItem('payroll-calc-student-loan') || 'none';
+        salarySacrificeInput.value = localStorage.getItem('payroll-calc-salary-sac') || '';
+
+        onShiftPatternChange();
+    }
+
+    [rateInput, anchorDateInput, patternSeqInput, otHoursInput, overtimeRateSelect, bhHoursInput, bhMultiplierSelect, pensionRateSelect, studentLoanSelect, salarySacrificeInput].forEach(input => {
+        input.addEventListener('input', calculatePay);
+        input.addEventListener('change', calculatePay);
+    });
+
+    function getNextPayDay(fromDate) {
+        let payDate = new Date(fromDate.getFullYear(), fromDate.getMonth(), fromDate.getDate());
+        let dayOfWeek = payDate.getDay();
+        let daysUntilWednesday = (3 + 7 - dayOfWeek) % 7;
+        payDate.setDate(payDate.getDate() + daysUntilWednesday);
+        return payDate;
+    }
+
+    function updateHeroCard(nextPayDay, nextWeekNum, currentHours, payInfo, slipDate, weekStart, weekEnd) {
+        const today = new Date();
+        const diffMs = nextPayDay.getTime() - today.getTime();
+        const diffDays = Math.ceil(diffMs / (1000 * 60 * 60 * 24));
+
+        const heroDateTitle = document.getElementById('hero-date-title');
+        const heroCountdownPill = document.getElementById('hero-countdown-pill');
+        const heroEstAmount = document.getElementById('hero-est-amount');
+        const heroHoursTag = document.getElementById('hero-hours-tag');
+        const heroSlipVal = document.getElementById('hero-slip-val');
+        const heroPeriodVal = document.getElementById('hero-period-val');
+        const heroWeekVal = document.getElementById('hero-week-val');
+        const progressBar = document.getElementById('cycle-progress');
+
+        heroDateTitle.textContent = formatDate(nextPayDay, { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+
+        if (diffDays <= 0) {
+            heroCountdownPill.textContent = "🎉 Today is Payday!";
+        } else if (diffDays === 1) {
+            heroCountdownPill.textContent = "⏳ Tomorrow!";
+        } else {
+            heroCountdownPill.textContent = `⏳ In ${diffDays} Days`;
+        }
+
+        heroEstAmount.textContent = formatCurrency(payInfo.net);
+        heroHoursTag.textContent = `(${currentHours}h)`;
+        heroSlipVal.textContent = formatDate(slipDate, { weekday: 'short', day: 'numeric', month: 'short' });
+        heroPeriodVal.textContent = `${formatShortDate(weekStart)} → ${formatShortDate(weekEnd)}`;
+        heroWeekVal.textContent = `Week ${nextWeekNum}`;
+
+        const cycleProgressPct = Math.min(100, Math.max(10, ((7 - diffDays) / 7) * 100));
+        progressBar.style.width = `${cycleProgressPct}%`;
+    }
+
+    function renderSchedule() {
+        const container = document.getElementById('schedule-container');
+        container.innerHTML = '';
+
+        const today = new Date();
+        const nextPayDay = getNextPayDay(today);
+        const nextTaxInfo = getUKTaxInfo(nextPayDay);
+        currentTaxWeekGlobal = nextTaxInfo.weekNum;
+
+        ytdTaxYearTitle.textContent = `Tax Year ${nextTaxInfo.taxYearLabel} Overview`;
+
+        // Calculate Hero details for upcoming payday
+        let nextSlipDate = new Date(nextPayDay);
+        nextSlipDate.setDate(nextPayDay.getDate() - 2);
+
+        let nextWeekEnd = new Date(nextPayDay);
+        nextWeekEnd.setDate(nextPayDay.getDate() - 10);
+
+        let nextWeekStart = new Date(nextWeekEnd);
+        nextWeekStart.setDate(nextWeekEnd.getDate() - 6);
+
+        const nextHours = getWeekPatternHours(nextTaxInfo.weekNum, nextWeekStart);
+
+        let nextHolidays = [];
+        let chkNext = new Date(nextWeekStart);
+        while (chkNext <= nextWeekEnd) {
+            const k = getLocalDateString(chkNext);
+            if (bankHolidays[k]) {
+                nextHolidays.push({ name: bankHolidays[k], date: new Date(chkNext) });
+            }
+            chkNext.setDate(chkNext.getDate() + 1);
+        }
+        const nextIsBhWorked = nextHolidays.length > 0 && isBankHolidayActuallyWorked(nextTaxInfo.weekNum, nextHolidays);
+        const nextPayInfo = calculatePayForHours(nextHours, nextIsBhWorked);
+
+        updateHeroCard(nextPayDay, nextTaxInfo.weekNum, nextHours, nextPayInfo, nextSlipDate, nextWeekStart, nextWeekEnd);
+
+        let payDatesToRender = [];
+
+        if (currentViewMode === 'month') {
+            let testDate = new Date(viewYear, viewMonth, 1);
+            while (testDate.getMonth() === viewMonth) {
+                if (testDate.getDay() === 3) {
+                    payDatesToRender.push(new Date(testDate));
+                }
+                testDate.setDate(testDate.getDate() + 1);
+            }
+
+            let monthNetTotal = 0;
+            payDatesToRender.forEach(pDate => {
+                const taxInfo = getUKTaxInfo(pDate);
+
+                let weekEnd = new Date(pDate);
+                weekEnd.setDate(pDate.getDate() - 10);
+                let weekStart = new Date(weekEnd);
+                weekStart.setDate(weekEnd.getDate() - 6);
+
+                const hrs = getWeekPatternHours(taxInfo.weekNum, weekStart);
+
+                let holidaysInCycle = [];
+                let chk = new Date(weekStart);
+                while (chk <= weekEnd) {
+                    const k = getLocalDateString(chk);
+                    if (bankHolidays[k]) {
+                        holidaysInCycle.push({ name: bankHolidays[k], date: new Date(chk) });
+                    }
+                    chk.setDate(chk.getDate() + 1);
+                }
+
+                const isWorked = holidaysInCycle.length > 0 && isBankHolidayActuallyWorked(taxInfo.weekNum, holidaysInCycle);
+                const payInfo = calculatePayForHours(hrs, isWorked);
+                monthNetTotal += payInfo.net;
+            });
+
+            const count = payDatesToRender.length;
+            const is5Paydays = count === 5;
+
+            monthStatusBanner.className = `month-status-banner ${is5Paydays ? 'bonus-month' : ''}`;
+            monthPaydayCount.innerHTML = is5Paydays 
+                ? `🌟 <strong>5-Payday Month!</strong> (+1 Extra Paycheck)`
+                : `📅 <strong>${count} Paydays</strong> in this month`;
+            monthEstTotal.textContent = `Est. Take-Home: ${formatCurrency(monthNetTotal)}`;
+
+        } else {
+            const count = parseInt(currentViewMode, 10) || 4;
+            for (let i = 0; i < count; i++) {
+                let pDate = new Date(nextPayDay);
+                pDate.setDate(nextPayDay.getDate() + (i * 7));
+                payDatesToRender.push(pDate);
+            }
+        }
+
+        // Render Clean Cards
+        payDatesToRender.forEach((payDate) => {
+            let slipDate = new Date(payDate);
+            slipDate.setDate(payDate.getDate() - 2);
+
+            let weekEnd = new Date(payDate);
+            weekEnd.setDate(payDate.getDate() - 10);
+
+            let weekStart = new Date(weekEnd);
+            weekStart.setDate(weekEnd.getDate() - 6);
+
+            const taxInfo = getUKTaxInfo(payDate);
+            const currentHours = getWeekPatternHours(taxInfo.weekNum, weekStart);
+
+            let holidaysInCycle = [];
+            let checkDate = new Date(weekStart);
+            while (checkDate <= weekEnd) {
+                const key = getLocalDateString(checkDate);
+                if (bankHolidays[key]) {
+                    holidaysInCycle.push({ name: bankHolidays[key], date: new Date(checkDate) });
+                }
+                checkDate.setDate(checkDate.getDate() + 1);
+            }
+
+            const hasBankHoliday = holidaysInCycle.length > 0;
+            const isActuallyWorked = hasBankHoliday && isBankHolidayActuallyWorked(taxInfo.weekNum, holidaysInCycle);
+
+            const weekPay = calculatePayForHours(currentHours, isActuallyWorked);
+
+            const card = document.createElement('article');
+            card.className = 'card';
+            card.innerHTML = `
+                <div class="card-header">
+                    <div class="card-title">Pay Week ${taxInfo.weekNum}</div>
+                    <div class="pay-est-badge ${isActuallyWorked ? 'bh-boost' : ''}">
+                        Take-Home ${formatCurrency(weekPay.net)} (${currentHours}h${isActuallyWorked ? ' + Bank Hol' : ''})
+                    </div>
+                </div>
+
+                <div class="grid-info">
+                    <div class="info-item">
+                        <span class="info-label">Hours Worked Period</span>
+                        <span class="info-value val-blue">${formatShortDate(weekStart)} → ${formatShortDate(weekEnd)}</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Payslip Released</span>
+                        <span class="info-value val-green">${formatDate(slipDate, { weekday: 'short', day: 'numeric', month: 'short' })}</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Payday</span>
+                        <span class="info-value" style="color: var(--accent-red);">${formatDate(payDate, { weekday: 'long', day: 'numeric', month: 'short', year: 'numeric' })}</span>
+                    </div>
+                    <div class="info-item" style="align-items: flex-end; justify-content: flex-end;">
+                        <button class="cal-export-btn" onclick="exportToCalendar('${formatShortDate(payDate)}', ${taxInfo.weekNum})">
+                            📅 Add Reminder
+                        </button>
+                    </div>
+                </div>
+
+                ${hasBankHoliday ? `
+                    <div class="holiday-card-bar ${isActuallyWorked ? 'worked' : 'off'}">
+                        <div>
+                            <span>${isActuallyWorked ? '⚡' : '🌴'}</span>
+                            <span><strong>${holidaysInCycle.map(h => `${h.name} (${formatDate(h.date, { day: 'numeric', month: 'short' })})`).join(', ')}</strong>: ${isActuallyWorked ? 'Worked Shift' : 'Rest Day (Off)'}</span>
+                        </div>
+                        <button class="bh-toggle-btn" onclick="toggleBankHolidayOverride(${taxInfo.weekNum})">
+                            ${isActuallyWorked ? 'Set as Off' : 'Set as Worked'}
+                        </button>
+                    </div>
+                ` : ''}
+            `;
+            container.appendChild(card);
+        });
+    }
+
+    function exportToCalendar(dateStr, weekNum) {
+        const [day, month, year] = dateStr.split('/');
+        const isoDate = `${year}${month}${day}`;
+        const title = encodeURIComponent(`💰 Payday (Week ${weekNum})`);
+        const details = encodeURIComponent(`Payroll deposit for Pay Week ${weekNum}. Check payslip details.`);
+        const googleCalUrl = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${title}&dates=${isoDate}/${isoDate}&details=${details}`;
+        window.open(googleCalUrl, '_blank');
+    }
+
+    // Theme Management
+    const themeBtn = document.getElementById('theme-toggle');
+    const themeIcon = document.getElementById('theme-icon');
+    const themeText = document.getElementById('theme-text');
+
+    function setTheme(theme) {
+        document.documentElement.setAttribute('data-theme', theme);
+        localStorage.setItem('payroll-theme', theme);
+        themeIcon.textContent = theme === 'dark' ? '☀️' : '🌙';
+        themeText.textContent = theme === 'dark' ? 'Light' : 'Dark';
+    }
+
+    const savedTheme = localStorage.getItem('payroll-theme') || 
+        (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+    setTheme(savedTheme);
+
+    themeBtn.addEventListener('click', () => {
+        const currentTheme = document.documentElement.getAttribute('data-theme');
+        setTheme(currentTheme === 'dark' ? 'light' : 'dark');
+    });
+
+    // Init
+    populateMonthDropdown();
+    loadSavedCalcSettings();
+    calculatePay();
+</script>
+</body>
+</html>
