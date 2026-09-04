@@ -1662,6 +1662,8 @@
             const card = document.createElement('article');
             card.className = 'card';
             card.dataset.weekKey = weekKey;
+            card.dataset.taxWeek = taxInfo.weekNum;
+            card.dataset.hasBh = hasBankHoliday ? '1' : '0';
             card.innerHTML = `
                 <div class="card-header">
                     <div class="card-title">Pay Week ${taxInfo.weekNum}</div>
@@ -1728,40 +1730,128 @@
         });
     }
 
-    // Delegated event listener for card overtime inputs
+    // In-place UI update for card overtime inputs to prevent cursor jumping
+    function updateSingleCardUI(card) {
+        const weekKey = card.dataset.weekKey;
+        const taxWeekNum = parseInt(card.dataset.taxWeek, 10);
+        const hasBankHoliday = card.dataset.hasBh === '1';
+
+        const hoursInput = card.querySelector('.ot-hours-input');
+        const rateSelect = card.querySelector('.ot-rate-select');
+        const otHours = parseFloat(hoursInput.value) || 0;
+        const otMultiplier = parseFloat(rateSelect.value) || 1.5;
+
+        if (!weeklyOvertimeData[weekKey]) weeklyOvertimeData[weekKey] = {};
+        weeklyOvertimeData[weekKey].hours = otHours;
+        weeklyOvertimeData[weekKey].rate = otMultiplier;
+        localStorage.setItem('payroll-weekly-ot', JSON.stringify(weeklyOvertimeData));
+
+        const isBhWorked = !!bankHolidayWorkedData[weekKey];
+        const rate = parseFloat(rateInput.value) || 0;
+        const stdHours = getShiftPatternHours(taxWeekNum);
+        const bhMultiplier = parseFloat(bhMultiplierSelect.value) || 2.0;
+        const pensionRate = (parseFloat(pensionRateSelect.value) || 0) / 100;
+        const studentLoanPlan = studentLoanSelect.value;
+        const salarySacrifice = parseFloat(salarySacrificeInput.value) || 0;
+
+        const bhPayHours = currentBhHours > 0 ? currentBhHours : 12;
+        let weekGross = (rate * stdHours) + ((rate * otMultiplier) * otHours);
+        if (hasBankHoliday && isBhWorked) {
+            weekGross += (rate * bhMultiplier) * bhPayHours;
+        }
+        const weekDeductions = calculateUKDeductions(weekGross, pensionRate, studentLoanPlan, salarySacrifice);
+        const displayNet = weekDeductions.net;
+        const totalHours = stdHours + otHours + (hasBankHoliday && isBhWorked ? bhPayHours : 0);
+
+        // Update badge
+        const cardHeader = card.querySelector('.card-header');
+        let badgeEl = card.querySelector('.pay-est-badge');
+        if (displayNet > 0) {
+            if (!badgeEl) {
+                badgeEl = document.createElement('div');
+                cardHeader.appendChild(badgeEl);
+            }
+            badgeEl.className = `pay-est-badge ${isBhWorked || otHours > 0 ? 'bh-boost' : ''}`;
+            badgeEl.textContent = `Take-Home ${formatCurrency(displayNet)} (${totalHours}h)`;
+        } else if (badgeEl) {
+            badgeEl.remove();
+        }
+
+        // Update deductions
+        let dedEl = card.querySelector('.card-deductions');
+        if (weekGross > 0) {
+            if (!dedEl) {
+                dedEl = document.createElement('div');
+                dedEl.className = 'card-deductions';
+                const otRow = card.querySelector('.card-ot-row');
+                if (otRow && otRow.nextSibling) {
+                    card.insertBefore(dedEl, otRow.nextSibling);
+                } else {
+                    card.appendChild(dedEl);
+                }
+            }
+            dedEl.innerHTML = `
+                <div class="card-deduction-pill">Tax <span class="pill-amount">-${formatCurrency(weekDeductions.tax)}</span></div>
+                <div class="card-deduction-pill">NI <span class="pill-amount">-${formatCurrency(weekDeductions.ni)}</span></div>
+                <div class="card-deduction-pill">Pension <span class="pill-amount">-${formatCurrency(weekDeductions.pension)}</span></div>
+            `;
+        } else if (dedEl) {
+            dedEl.remove();
+        }
+
+        // Update Hero card
+        const today = new Date();
+        const nextPayDay = getNextPayDay(today);
+        const nextTaxInfo = getUKTaxInfo(nextPayDay);
+        updateHeroCard(nextPayDay, nextTaxInfo.weekNum);
+
+        // Update Month banner if in month mode
+        if (currentViewMode === 'month') {
+            updateMonthSummaryBanner();
+        }
+    }
+
+    function updateMonthSummaryBanner() {
+        if (currentViewMode !== 'month') return;
+        const cards = document.querySelectorAll('#schedule-container .card');
+        let monthNetTotal = 0;
+        cards.forEach(c => {
+            const weekKey = c.dataset.weekKey;
+            const taxWeekNum = parseInt(c.dataset.taxWeek, 10);
+            const hasBankHoliday = c.dataset.hasBh === '1';
+
+            const hoursInput = c.querySelector('.ot-hours-input');
+            const rateSelect = c.querySelector('.ot-rate-select');
+            const otHours = hoursInput ? (parseFloat(hoursInput.value) || 0) : 0;
+            const otMultiplier = rateSelect ? (parseFloat(rateSelect.value) || 1.5) : 1.5;
+
+            const isBhWorked = !!bankHolidayWorkedData[weekKey];
+            const rate = parseFloat(rateInput.value) || 0;
+            const stdHours = getShiftPatternHours(taxWeekNum);
+            const bhMultiplier = parseFloat(bhMultiplierSelect.value) || 2.0;
+            const pensionRate = (parseFloat(pensionRateSelect.value) || 0) / 100;
+            const studentLoanPlan = studentLoanSelect.value;
+            const salarySacrifice = parseFloat(salarySacrificeInput.value) || 0;
+
+            const bhPayHours = currentBhHours > 0 ? currentBhHours : 12;
+            let weekGross = (rate * stdHours) + ((rate * otMultiplier) * otHours);
+            if (hasBankHoliday && isBhWorked) {
+                weekGross += (rate * bhMultiplier) * bhPayHours;
+            }
+            const weekDeductions = calculateUKDeductions(weekGross, pensionRate, studentLoanPlan, salarySacrifice);
+            monthNetTotal += weekDeductions.net;
+        });
+        if (monthEstTotal) {
+            monthEstTotal.textContent = `Est. Take-Home: ${formatCurrency(monthNetTotal)}`;
+        }
+    }
+
     const scheduleContainerEl = document.getElementById('schedule-container');
     function handleCardOtInput(e) {
         if (e.target.classList.contains('ot-hours-input') || e.target.classList.contains('ot-rate-select')) {
-            const weekKey = e.target.dataset.weekKey;
             const card = e.target.closest('.card');
-            const hoursVal = card.querySelector('.ot-hours-input').value;
-            const rateVal = card.querySelector('.ot-rate-select').value;
-
-            const hours = parseFloat(hoursVal) || 0;
-            const rate = parseFloat(rateVal) || 1.5;
-
-            if (!weeklyOvertimeData[weekKey]) weeklyOvertimeData[weekKey] = {};
-            weeklyOvertimeData[weekKey].hours = hours;
-            weeklyOvertimeData[weekKey].rate = rate;
-            localStorage.setItem('payroll-weekly-ot', JSON.stringify(weeklyOvertimeData));
-
-            const isHours = e.target.classList.contains('ot-hours-input');
-            const selectionStart = isHours ? e.target.selectionStart : null;
-            const selectionEnd = isHours ? e.target.selectionEnd : null;
-
-            renderSchedule();
-
-            const targetCard = document.querySelector(`.card[data-week-key="${weekKey}"]`);
-            if (targetCard) {
-                const fieldToFocus = isHours
-                    ? targetCard.querySelector('.ot-hours-input')
-                    : targetCard.querySelector('.ot-rate-select');
-                if (fieldToFocus) {
-                    fieldToFocus.focus();
-                    if (isHours && typeof selectionStart === 'number' && fieldToFocus.setSelectionRange) {
-                        try { fieldToFocus.setSelectionRange(selectionStart, selectionEnd); } catch(err){}
-                    }
-                }
+            if (card) {
+                updateSingleCardUI(card);
             }
         }
     }
