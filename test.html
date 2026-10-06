@@ -972,18 +972,6 @@
                 </div>
             </div>
 
-            <!-- Live Net / Month Banner -->
-            <div class="calc-summary-banner">
-                <div class="stat-col">
-                    <span class="stat-lbl">Est. Weekly Take-Home (Net)</span>
-                    <span class="stat-big" id="net-pay">£0.00</span>
-                </div>
-                <div class="stat-col" style="text-align: right;">
-                    <span class="stat-lbl">Standard Month (4 Wks)</span>
-                    <span style="font-size: 0.95rem; font-weight: 800;" id="monthly-net">£0.00</span>
-                </div>
-            </div>
-
             <!-- Sub-Drawer: Bank Holiday Pay, Pension & Student Loans -->
             <details class="sub-drawer">
                 <summary>⚙️ Extra Options (Bank Hol, Pension, Loans)</summary>
@@ -1026,37 +1014,20 @@
                                 <input type="number" id="salary-sacrifice" class="calc-input has-prefix" placeholder="0.00" step="1" min="0">
                             </div>
                         </div>
-                    </div>
-                </div>
-            </details>
 
-            <!-- Sub-Drawer: Itemized Deductions Breakdown -->
-            <details class="sub-drawer">
-                <summary>🧾 View Payslip Deductions Breakdown</summary>
-                <div class="sub-drawer-content">
-                    <div class="deduct-row total-gross">
-                        <span>Standard Weekly Gross</span>
-                        <span id="gross-pay">£0.00</span>
-                    </div>
-                    <div class="deduct-row">
-                        <span id="tax-pay-label">Income Tax (1257L PAYE)</span>
-                        <span class="deduct-val" id="tax-pay">-£0.00</span>
-                    </div>
-                    <div class="deduct-row">
-                        <span>National Insurance (Class 1)</span>
-                        <span class="deduct-val" id="ni-pay">-£0.00</span>
-                    </div>
-                    <div class="deduct-row" id="pension-row">
-                        <span>Workplace Pension</span>
-                        <span class="deduct-val" id="pension-pay">-£0.00</span>
-                    </div>
-                    <div class="deduct-row" id="student-loan-row" style="display: none;">
-                        <span>Student Loan Repayment</span>
-                        <span class="deduct-val" id="student-loan-pay">-£0.00</span>
-                    </div>
-                    <div class="deduct-row" id="salary-sac-row" style="display: none;">
-                        <span>Salary Sacrifice</span>
-                        <span class="deduct-val" id="salary-sac-pay">-£0.00</span>
+                        <div class="input-group" style="grid-column: span 2; display: flex; flex-direction: row; align-items: center; gap: 8px; margin-top: 4px;">
+                            <input type="checkbox" id="force-basic-tax" style="width: 16px; height: 16px; accent-color: var(--primary);">
+                            <label for="force-basic-tax" style="text-transform: none; font-size: 0.8rem; cursor: pointer; color: var(--text-main);">Force Basic Rate (20%) Tax (Prevents 40% on Overtime)</label>
+                        </div>
+                        
+                        <div class="input-group" style="grid-column: span 2; margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--card-border);">
+                            <label>Data Backup</label>
+                            <div style="display: flex; gap: 8px; margin-top: 4px;">
+                                <button type="button" onclick="exportData()" class="theme-btn" style="flex: 1; justify-content: center;">⬇️ Export Data</button>
+                                <button type="button" onclick="document.getElementById('import-file').click()" class="theme-btn" style="flex: 1; justify-content: center;">⬆️ Import Data</button>
+                                <input type="file" id="import-file" style="display: none;" accept=".json" onchange="importData(event)">
+                            </div>
+                        </div>
                     </div>
                 </div>
             </details>
@@ -1156,6 +1127,7 @@
     let currentTaxWeekGlobal = 22;
     let weeklyOvertimeData = JSON.parse(localStorage.getItem('payroll-weekly-ot') || '{}');
     let bankHolidayWorkedData = JSON.parse(localStorage.getItem('payroll-bh-worked') || '{}');
+    let weeklyExtraPayData = JSON.parse(localStorage.getItem('payroll-extra-pay') || '{}');
 
     // Elements
     const rateInput = document.getElementById('hourly-rate');
@@ -1165,6 +1137,7 @@
     const pensionRateSelect = document.getElementById('pension-rate');
     const studentLoanSelect = document.getElementById('student-loan');
     const salarySacrificeInput = document.getElementById('salary-sacrifice');
+    const forceBasicTaxCheckbox = document.getElementById('force-basic-tax');
 
     const calcHeaderSummary = document.getElementById('calc-header-summary');
     const grossPayDisplay = document.getElementById('gross-pay');
@@ -1343,7 +1316,7 @@
     function calculateUKDeductions(grossEarnings, pensionRate, studentLoanPlan, salarySacrifice) {
         const adjustedGross = Math.max(0, grossEarnings - salarySacrifice);
 
-        const qualifyingPension = Math.max(0, adjustedGross - 120);
+        const qualifyingPension = Math.max(0, Math.min(adjustedGross, 967) - 120);
         const weeklyPension = qualifyingPension * pensionRate;
 
         const taxCodeStr = taxCodeInput ? taxCodeInput.value : '1257L';
@@ -1361,16 +1334,22 @@
             const higherBandSize = (125140 - 50270) / 52;
 
             if (weeklyTaxableGross > 0) {
-                const basicTaxable = Math.min(weeklyTaxableGross, basicBandSize);
-                weeklyTax += basicTaxable * 0.20;
+                const forceBasic = forceBasicTaxCheckbox ? forceBasicTaxCheckbox.checked : false;
 
-                if (weeklyTaxableGross > basicBandSize) {
-                    const higherTaxable = Math.min(weeklyTaxableGross - basicBandSize, higherBandSize);
-                    weeklyTax += higherTaxable * 0.40;
+                if (forceBasic) {
+                    weeklyTax = weeklyTaxableGross * 0.20;
+                } else {
+                    const basicTaxable = Math.min(weeklyTaxableGross, basicBandSize);
+                    weeklyTax += basicTaxable * 0.20;
 
-                    if (weeklyTaxableGross > (basicBandSize + higherBandSize)) {
-                        const additionalTaxable = weeklyTaxableGross - (basicBandSize + higherBandSize);
-                        weeklyTax += additionalTaxable * 0.45;
+                    if (weeklyTaxableGross > basicBandSize) {
+                        const higherTaxable = Math.min(weeklyTaxableGross - basicBandSize, higherBandSize);
+                        weeklyTax += higherTaxable * 0.40;
+
+                        if (weeklyTaxableGross > (basicBandSize + higherBandSize)) {
+                            const additionalTaxable = weeklyTaxableGross - (basicBandSize + higherBandSize);
+                            weeklyTax += additionalTaxable * 0.45;
+                        }
                     }
                 }
             }
@@ -1434,34 +1413,7 @@
         const stdDeductions = calculateUKDeductions(standardWeeklyGross, pensionRate, studentLoanPlan, salarySacrifice);
         standardWeeklyNet = stdDeductions.net;
 
-        const bhPay = (rate * bhMultiplier) * currentBhHours;
-        const bhGross = standardWeeklyGross + bhPay;
-        const bhDeductions = calculateUKDeductions(bhGross, pensionRate, studentLoanPlan, salarySacrifice);
-        bankHolidayWeeklyNet = bhDeductions.net;
-
         calcHeaderSummary.textContent = standardWeeklyNet > 0 ? `Est. Net ${formatCurrency(standardWeeklyNet)}` : 'Est. Net £0.00';
-        grossPayDisplay.textContent = formatCurrency(standardWeeklyGross);
-        if (taxPayLabel) taxPayLabel.textContent = stdDeductions.taxCodeLabel;
-        taxPayDisplay.textContent = `-${formatCurrency(stdDeductions.tax)}`;
-        niPayDisplay.textContent = `-${formatCurrency(stdDeductions.ni)}`;
-        pensionPayDisplay.textContent = `-${formatCurrency(stdDeductions.pension)}`;
-
-        if (stdDeductions.studentLoan > 0) {
-            studentLoanRow.style.display = 'flex';
-            studentLoanPayDisplay.textContent = `-${formatCurrency(stdDeductions.studentLoan)}`;
-        } else {
-            studentLoanRow.style.display = 'none';
-        }
-
-        if (salarySacrifice > 0) {
-            salarySacRow.style.display = 'flex';
-            salarySacPayDisplay.textContent = `-${formatCurrency(salarySacrifice)}`;
-        } else {
-            salarySacRow.style.display = 'none';
-        }
-
-        netPayDisplay.textContent = formatCurrency(standardWeeklyNet);
-        monthlyNetDisplay.textContent = formatCurrency(standardWeeklyNet * 4);
 
         updateYTDSummary();
 
@@ -1472,14 +1424,67 @@
         localStorage.setItem('payroll-calc-pension', pensionRateSelect.value);
         localStorage.setItem('payroll-calc-student-loan', studentLoanSelect.value);
         localStorage.setItem('payroll-calc-salary-sac', salarySacrificeInput.value);
+        if (forceBasicTaxCheckbox) localStorage.setItem('payroll-calc-force-basic-tax', forceBasicTaxCheckbox.checked ? '1' : '0');
 
         renderSchedule();
     }
 
     function updateYTDSummary() {
         const weeksCompleted = Math.max(1, currentTaxWeekGlobal);
-        const ytdGross = standardWeeklyGross * weeksCompleted;
-        const ytdNet = standardWeeklyNet * weeksCompleted;
+        
+        let ytdGross = 0;
+        let ytdNet = 0;
+
+        const today = new Date();
+        const nextPayDay = getNextPayDay(today);
+        let weekIterDate = new Date(nextPayDay);
+        weekIterDate.setDate(weekIterDate.getDate() - (weeksCompleted - 1) * 7);
+
+        const rate = parseFloat(rateInput.value) || 0;
+        const bhMultiplier = parseFloat(bhMultiplierSelect.value) || 2.0;
+        const pensionRate = (parseFloat(pensionRateSelect.value) || 0) / 100;
+        const studentLoanPlan = studentLoanSelect.value;
+        const salarySacrifice = parseFloat(salarySacrificeInput.value) || 0;
+        const bhPayHours = currentBhHours > 0 ? currentBhHours : 12;
+
+        for (let i = 1; i <= weeksCompleted; i++) {
+            const taxInfo = getUKTaxInfo(weekIterDate);
+            const weekKey = getLocalDateString(weekIterDate);
+            const stdHours = getShiftPatternHours(taxInfo.weekNum);
+            
+            let weekEnd = new Date(weekIterDate);
+            weekEnd.setDate(weekEnd.getDate() - 10);
+            let weekStart = new Date(weekEnd);
+            weekStart.setDate(weekStart.getDate() - 6);
+
+            let hasHolidays = false;
+            let chk = new Date(weekStart);
+            while (chk <= weekEnd) {
+                if (bankHolidays[getLocalDateString(chk)]) {
+                    hasHolidays = true; break;
+                }
+                chk.setDate(chk.getDate() + 1);
+            }
+
+            const weekOt = weeklyOvertimeData[weekKey] || {};
+            const otHours = parseFloat(weekOt.hours) || 0;
+            const otMultiplier = parseFloat(weekOt.rate) || 1.5;
+            const isBhWorked = !!bankHolidayWorkedData[weekKey];
+            const extraPay = parseFloat(weeklyExtraPayData[weekKey]) || 0;
+
+            let weekGross = (rate * stdHours) + ((rate * otMultiplier) * otHours) + extraPay;
+            if (hasHolidays && isBhWorked) {
+                weekGross += (rate * bhMultiplier) * bhPayHours;
+            }
+
+            const weekDeductions = calculateUKDeductions(weekGross, pensionRate, studentLoanPlan, salarySacrifice);
+            
+            ytdGross += weekGross;
+            ytdNet += weekDeductions.net;
+
+            weekIterDate.setDate(weekIterDate.getDate() + 7);
+        }
+
         const annualNet = standardWeeklyNet * 52;
         
         const parsedTax = parseTaxCode(taxCodeInput ? taxCodeInput.value : '1257L');
@@ -1499,7 +1504,6 @@
         bhHoursInput.value = localStorage.getItem('payroll-calc-bh-hours') || '';
         bhMultiplierSelect.value = localStorage.getItem('payroll-calc-bh-mult') || '2.0';
         let savedPension = localStorage.getItem('payroll-calc-pension') || '5';
-        // Migrate old decimal format (0.03, 0.05, 0.08) to percentage
         if (parseFloat(savedPension) < 1 && parseFloat(savedPension) > 0) {
             savedPension = String(parseFloat(savedPension) * 100);
         }
@@ -1507,9 +1511,12 @@
         document.getElementById('pension-rate-display').textContent = pensionRateSelect.value + '%';
         studentLoanSelect.value = localStorage.getItem('payroll-calc-student-loan') || 'none';
         salarySacrificeInput.value = localStorage.getItem('payroll-calc-salary-sac') || '';
+        if (forceBasicTaxCheckbox) {
+            forceBasicTaxCheckbox.checked = localStorage.getItem('payroll-calc-force-basic-tax') === '1';
+        }
     }
 
-    [rateInput, taxCodeInput, bhHoursInput, bhMultiplierSelect, pensionRateSelect, studentLoanSelect, salarySacrificeInput].forEach(input => {
+    [rateInput, taxCodeInput, bhHoursInput, bhMultiplierSelect, pensionRateSelect, studentLoanSelect, salarySacrificeInput, forceBasicTaxCheckbox].forEach(input => {
         if (input) {
             input.addEventListener('input', calculatePay);
             input.addEventListener('change', calculatePay);
@@ -1648,9 +1655,10 @@
             const pensionRate = (parseFloat(pensionRateSelect.value) || 0) / 100;
             const studentLoanPlan = studentLoanSelect.value;
             const salarySacrifice = parseFloat(salarySacrificeInput.value) || 0;
+            const extraPay = parseFloat(weeklyExtraPayData[weekKey]) || 0;
 
             const bhPayHours = currentBhHours > 0 ? currentBhHours : 12;
-            let weekGross = (rate * stdHours) + ((rate * otMultiplier) * otHours);
+            let weekGross = (rate * stdHours) + ((rate * otMultiplier) * otHours) + extraPay;
             if (hasBankHoliday && isBhWorked) {
                 weekGross += (rate * bhMultiplier) * bhPayHours;
             }
@@ -1668,7 +1676,7 @@
                 <div class="card-header">
                     <div class="card-title">Pay Week ${taxInfo.weekNum}</div>
                     ${displayNet > 0 ? `
-                        <div class="pay-est-badge ${isBhWorked || otHours > 0 ? 'bh-boost' : ''}">
+                        <div class="pay-est-badge ${isBhWorked || otHours > 0 || extraPay !== 0 ? 'bh-boost' : ''}">
                             Take-Home ${formatCurrency(displayNet)} (${totalHours}h)
                         </div>
                     ` : ''}
@@ -1706,13 +1714,49 @@
                             <option value="1.0" ${otMultiplier === 1.0 ? 'selected' : ''}>1.0x (Flat Rate)</option>
                         </select>
                     </div>
+                    <div class="ot-input-group">
+                        <label>Adj/Extra(£)</label>
+                        <input type="number" class="calc-input extra-pay-input" data-week-key="${weekKey}" value="${extraPay !== 0 ? extraPay : ''}" placeholder="0.00" step="0.01">
+                    </div>
                 </div>
                 ${weekGross > 0 ? `
-                <div class="card-deductions">
-                    <div class="card-deduction-pill">Tax <span class="pill-amount">-${formatCurrency(weekDeductions.tax)}</span></div>
-                    <div class="card-deduction-pill">NI <span class="pill-amount">-${formatCurrency(weekDeductions.ni)}</span></div>
-                    <div class="card-deduction-pill">Pension <span class="pill-amount">-${formatCurrency(weekDeductions.pension)}</span></div>
-                </div>
+                <details class="sub-drawer" style="margin-top: 10px;">
+                    <summary>🧾 View Payslip Deductions Breakdown</summary>
+                    <div class="sub-drawer-content">
+                        <div class="deduct-row total-gross">
+                            <span>Total Gross Pay</span>
+                            <span>${formatCurrency(weekGross)}</span>
+                        </div>
+                        <div class="deduct-row">
+                            <span>Income Tax (${weekDeductions.taxCodeLabel})</span>
+                            <span class="deduct-val">-${formatCurrency(weekDeductions.tax)}</span>
+                        </div>
+                        <div class="deduct-row">
+                            <span>National Insurance</span>
+                            <span class="deduct-val">-${formatCurrency(weekDeductions.ni)}</span>
+                        </div>
+                        <div class="deduct-row">
+                            <span>Workplace Pension</span>
+                            <span class="deduct-val">-${formatCurrency(weekDeductions.pension)}</span>
+                        </div>
+                        ${weekDeductions.studentLoan > 0 ? `
+                        <div class="deduct-row">
+                            <span>Student Loan</span>
+                            <span class="deduct-val">-${formatCurrency(weekDeductions.studentLoan)}</span>
+                        </div>
+                        ` : ''}
+                        ${salarySacrifice > 0 ? `
+                        <div class="deduct-row">
+                            <span>Salary Sacrifice</span>
+                            <span class="deduct-val">-${formatCurrency(salarySacrifice)}</span>
+                        </div>
+                        ` : ''}
+                        <div class="deduct-row total-gross" style="border-top: 1px solid var(--card-border); margin-top: 4px; padding-top: 8px;">
+                            <span>Net Take-Home Pay</span>
+                            <span style="color: var(--accent-green);">${formatCurrency(displayNet)}</span>
+                        </div>
+                    </div>
+                </details>
                 ` : ''}
                 ${hasBankHoliday ? holidaysInCycle.map(h => `
                     <div class="holiday-card-banner ${isBhWorked ? 'worked' : 'off'}">
@@ -1738,13 +1782,18 @@
 
         const hoursInput = card.querySelector('.ot-hours-input');
         const rateSelect = card.querySelector('.ot-rate-select');
+        const extraPayInput = card.querySelector('.extra-pay-input');
         const otHours = parseFloat(hoursInput.value) || 0;
         const otMultiplier = parseFloat(rateSelect.value) || 1.5;
+        const extraPay = extraPayInput ? (parseFloat(extraPayInput.value) || 0) : 0;
 
         if (!weeklyOvertimeData[weekKey]) weeklyOvertimeData[weekKey] = {};
         weeklyOvertimeData[weekKey].hours = otHours;
         weeklyOvertimeData[weekKey].rate = otMultiplier;
         localStorage.setItem('payroll-weekly-ot', JSON.stringify(weeklyOvertimeData));
+
+        weeklyExtraPayData[weekKey] = extraPay;
+        localStorage.setItem('payroll-extra-pay', JSON.stringify(weeklyExtraPayData));
 
         const isBhWorked = !!bankHolidayWorkedData[weekKey];
         const rate = parseFloat(rateInput.value) || 0;
@@ -1755,7 +1804,7 @@
         const salarySacrifice = parseFloat(salarySacrificeInput.value) || 0;
 
         const bhPayHours = currentBhHours > 0 ? currentBhHours : 12;
-        let weekGross = (rate * stdHours) + ((rate * otMultiplier) * otHours);
+        let weekGross = (rate * stdHours) + ((rate * otMultiplier) * otHours) + extraPay;
         if (hasBankHoliday && isBhWorked) {
             weekGross += (rate * bhMultiplier) * bhPayHours;
         }
@@ -1771,32 +1820,65 @@
                 badgeEl = document.createElement('div');
                 cardHeader.appendChild(badgeEl);
             }
-            badgeEl.className = `pay-est-badge ${isBhWorked || otHours > 0 ? 'bh-boost' : ''}`;
+            badgeEl.className = `pay-est-badge ${isBhWorked || otHours > 0 || extraPay !== 0 ? 'bh-boost' : ''}`;
             badgeEl.textContent = `Take-Home ${formatCurrency(displayNet)} (${totalHours}h)`;
         } else if (badgeEl) {
             badgeEl.remove();
         }
 
-        // Update deductions
-        let dedEl = card.querySelector('.card-deductions');
+        // Update deductions breakdown
+        let subDrawer = card.querySelector('.sub-drawer');
         if (weekGross > 0) {
-            if (!dedEl) {
-                dedEl = document.createElement('div');
-                dedEl.className = 'card-deductions';
+            if (!subDrawer) {
+                subDrawer = document.createElement('details');
+                subDrawer.className = 'sub-drawer';
+                subDrawer.style.marginTop = '10px';
                 const otRow = card.querySelector('.card-ot-row');
                 if (otRow && otRow.nextSibling) {
-                    card.insertBefore(dedEl, otRow.nextSibling);
+                    card.insertBefore(subDrawer, otRow.nextSibling);
                 } else {
-                    card.appendChild(dedEl);
+                    card.appendChild(subDrawer);
                 }
             }
-            dedEl.innerHTML = `
-                <div class="card-deduction-pill">Tax <span class="pill-amount">-${formatCurrency(weekDeductions.tax)}</span></div>
-                <div class="card-deduction-pill">NI <span class="pill-amount">-${formatCurrency(weekDeductions.ni)}</span></div>
-                <div class="card-deduction-pill">Pension <span class="pill-amount">-${formatCurrency(weekDeductions.pension)}</span></div>
+            subDrawer.innerHTML = `
+                <summary>🧾 View Payslip Deductions Breakdown</summary>
+                <div class="sub-drawer-content">
+                    <div class="deduct-row total-gross">
+                        <span>Total Gross Pay</span>
+                        <span>${formatCurrency(weekGross)}</span>
+                    </div>
+                    <div class="deduct-row">
+                        <span>Income Tax (${weekDeductions.taxCodeLabel})</span>
+                        <span class="deduct-val">-${formatCurrency(weekDeductions.tax)}</span>
+                    </div>
+                    <div class="deduct-row">
+                        <span>National Insurance</span>
+                        <span class="deduct-val">-${formatCurrency(weekDeductions.ni)}</span>
+                    </div>
+                    <div class="deduct-row">
+                        <span>Workplace Pension</span>
+                        <span class="deduct-val">-${formatCurrency(weekDeductions.pension)}</span>
+                    </div>
+                    ${weekDeductions.studentLoan > 0 ? `
+                    <div class="deduct-row">
+                        <span>Student Loan</span>
+                        <span class="deduct-val">-${formatCurrency(weekDeductions.studentLoan)}</span>
+                    </div>
+                    ` : ''}
+                    ${salarySacrifice > 0 ? `
+                    <div class="deduct-row">
+                        <span>Salary Sacrifice</span>
+                        <span class="deduct-val">-${formatCurrency(salarySacrifice)}</span>
+                    </div>
+                    ` : ''}
+                    <div class="deduct-row total-gross" style="border-top: 1px solid var(--card-border); margin-top: 4px; padding-top: 8px;">
+                        <span>Net Take-Home Pay</span>
+                        <span style="color: var(--accent-green);">${formatCurrency(displayNet)}</span>
+                    </div>
+                </div>
             `;
-        } else if (dedEl) {
-            dedEl.remove();
+        } else if (subDrawer) {
+            subDrawer.remove();
         }
 
         // Update Hero card
@@ -1822,8 +1904,10 @@
 
             const hoursInput = c.querySelector('.ot-hours-input');
             const rateSelect = c.querySelector('.ot-rate-select');
+            const extraPayInput = c.querySelector('.extra-pay-input');
             const otHours = hoursInput ? (parseFloat(hoursInput.value) || 0) : 0;
             const otMultiplier = rateSelect ? (parseFloat(rateSelect.value) || 1.5) : 1.5;
+            const extraPay = extraPayInput ? (parseFloat(extraPayInput.value) || 0) : 0;
 
             const isBhWorked = !!bankHolidayWorkedData[weekKey];
             const rate = parseFloat(rateInput.value) || 0;
@@ -1834,7 +1918,7 @@
             const salarySacrifice = parseFloat(salarySacrificeInput.value) || 0;
 
             const bhPayHours = currentBhHours > 0 ? currentBhHours : 12;
-            let weekGross = (rate * stdHours) + ((rate * otMultiplier) * otHours);
+            let weekGross = (rate * stdHours) + ((rate * otMultiplier) * otHours) + extraPay;
             if (hasBankHoliday && isBhWorked) {
                 weekGross += (rate * bhMultiplier) * bhPayHours;
             }
@@ -1848,7 +1932,7 @@
 
     const scheduleContainerEl = document.getElementById('schedule-container');
     function handleCardOtInput(e) {
-        if (e.target.classList.contains('ot-hours-input') || e.target.classList.contains('ot-rate-select')) {
+        if (e.target.classList.contains('ot-hours-input') || e.target.classList.contains('ot-rate-select') || e.target.classList.contains('extra-pay-input')) {
             const card = e.target.closest('.card');
             if (card) {
                 updateSingleCardUI(card);
@@ -1885,6 +1969,7 @@
         const weekOt = weeklyOvertimeData[nextWeekKey] || {};
         const otHours = parseFloat(weekOt.hours) || 0;
         const otMultiplier = parseFloat(weekOt.rate) || 1.5;
+        const extraPay = parseFloat(weeklyExtraPayData[nextWeekKey]) || 0;
 
         const rate = parseFloat(rateInput.value) || 0;
         const stdHours = getShiftPatternHours(nextWeekNum);
@@ -1905,7 +1990,7 @@
         }
 
         const bhPayHours = currentBhHours > 0 ? currentBhHours : 12;
-        let weekGross = (rate * stdHours) + ((rate * otMultiplier) * otHours);
+        let weekGross = (rate * stdHours) + ((rate * otMultiplier) * otHours) + extraPay;
         if (hasHolidays && isBhWorked) {
             weekGross += (rate * bhMultiplier) * bhPayHours;
         }
@@ -1939,6 +2024,50 @@
         const details = encodeURIComponent(`Payroll deposit for Pay Week ${weekNum}. Check payslip details.`);
         const googleCalUrl = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${title}&dates=${isoDate}/${isoDate}&details=${details}`;
         window.open(googleCalUrl, '_blank');
+    }
+
+    function exportData() {
+        const data = {
+            'payroll-calc-rate': localStorage.getItem('payroll-calc-rate'),
+            'payroll-calc-tax-code': localStorage.getItem('payroll-calc-tax-code'),
+            'payroll-calc-bh-hours': localStorage.getItem('payroll-calc-bh-hours'),
+            'payroll-calc-bh-mult': localStorage.getItem('payroll-calc-bh-mult'),
+            'payroll-calc-pension': localStorage.getItem('payroll-calc-pension'),
+            'payroll-calc-student-loan': localStorage.getItem('payroll-calc-student-loan'),
+            'payroll-calc-salary-sac': localStorage.getItem('payroll-calc-salary-sac'),
+            'payroll-calc-force-basic-tax': localStorage.getItem('payroll-calc-force-basic-tax'),
+            'payroll-weekly-ot': localStorage.getItem('payroll-weekly-ot'),
+            'payroll-bh-worked': localStorage.getItem('payroll-bh-worked'),
+            'payroll-extra-pay': localStorage.getItem('payroll-extra-pay'),
+        };
+        const blob = new Blob([JSON.stringify(data, null, 2)], {type: 'application/json'});
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `payroll_backup_${getLocalDateString(new Date())}.json`;
+        a.click();
+        URL.revokeObjectURL(url);
+    }
+
+    function importData(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            try {
+                const data = JSON.parse(e.target.result);
+                for (const key in data) {
+                    if (data[key] !== null && data[key] !== undefined) {
+                        localStorage.setItem(key, data[key]);
+                    }
+                }
+                alert('Data imported successfully! The page will now reload.');
+                location.reload();
+            } catch (err) {
+                alert('Invalid backup file.');
+            }
+        };
+        reader.readAsText(file);
     }
 
     // Theme Management
